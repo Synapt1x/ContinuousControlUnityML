@@ -104,6 +104,17 @@ class ControlMain:
         return MainAgent(**model_params, state_size=state_size,
                          action_size=action_size, num_instances=num_agents)
 
+    def _update_scores(self, scores):
+        """
+        Store scores from an episode into running storage.
+        """
+        # store average over agents
+        self.score_store.append(np.mean(scores))
+        
+        # also store average over last 100 episodes over agent average
+        score_avg = np.mean(self.score_store[-100:])
+        self.average_scores.append(score_avg)
+
     def save_model(self, file_name):
         """
         Save the model to the file name specified.
@@ -246,13 +257,6 @@ class ControlMain:
             # print average score as training progresses
             iteration += 1
 
-        self.score_store.extend(scores)
-        # compute average over 100 episodes
-        #TODO: compute average over agents
-
-        #score_avg = np.mean(self.score_store[-100:])
-        #self.average_scores.append(score_avg)
-
         return scores
 
     def train_agent(self, train_mode=True):
@@ -271,10 +275,10 @@ class ControlMain:
             # run episodes
             while episode < self.max_episodes:
                 scores = self.run_episode(train_mode=train_mode)
-                #TODO: compute average over agents
-                print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
 
-                #print(f'* Episode {episode} completed * avg: {avg_after_ep} *')
+                self._update_scores(scores)
+                
+                print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
 
                 episode += 1
                 if train_mode:

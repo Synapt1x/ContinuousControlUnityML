@@ -32,7 +32,7 @@ def parse_args():
 
     # command-line arguments
     arg_parser.add_argument('-t', '--train', action='store_true',
-                            default=False)
+                            default=True)
     arg_parser.add_argument('-c', '--config', dest='config_file',
                             type=str, default=DEFAULT_CONFIG)
     args = vars(arg_parser.parse_args())
