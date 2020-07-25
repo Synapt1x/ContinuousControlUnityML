@@ -97,11 +97,12 @@ class ControlMain:
         """
         # extract state and action information
         env_info = self.env.reset(train_mode=True)[self.brain_name]
+        num_agents = len(env_info.agents)
         state_size = len(env_info.vector_observations[0])
         action_size = self.brain.vector_action_space_size
 
         return MainAgent(**model_params, state_size=state_size,
-                         action_size=action_size)
+                         action_size=action_size, num_instances=num_agents)
 
     def save_model(self, file_name):
         """
@@ -218,27 +219,27 @@ class ControlMain:
 
         # initiate interaction and learning in environment
         env_info = self.env.reset(train_mode=train_mode)[self.brain_name]
-        state = env_info.vector_observations
+        states = env_info.vector_observations
 
         # get the number of agents and initialize a score for each
-        num_agents = len(env_info.agents)
-        scores = np.zeros(num_agents)
+        scores = np.zeros(self.agent.num_instances)
 
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
-            action = self.agent.get_action(state)
-            env_info = self.env.step(action)[self.brain_name]
-            next_state, rewards, done = self._eval_state(env_info)
+            action_probs = self.agent.get_action(states)
+            env_info = self.env.step(action_probs)[self.brain_name]
+            next_states, rewards, dones = self._eval_state(env_info)
 
             # learn from experience tuple batch
             if train_mode:
-                self.agent.learn(state, action, next_state, rewards, done)
+                self.agent.learn(states, action_probs, next_states, rewards,
+                                 dones)
 
             # increment score and compute average
             scores += rewards
-            state = next_state
+            states = next_states
 
-            if np.any(np.array(done)):
+            if np.any(np.array(dones)):
                 break
             time.sleep(self.frame_time)
 

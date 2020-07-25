@@ -11,7 +11,7 @@ unity-environment.log
 .idea
 
 # vscode
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json

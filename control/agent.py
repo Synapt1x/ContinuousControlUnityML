@@ -24,10 +24,12 @@ class MainAgent:
     through the continuous control problem.
     """
 
-    def __init__(self, alg, state_size, action_size, seed=13, **kwargs):
+    def __init__(self, alg, state_size, action_size, num_instances, seed=13,
+                 **kwargs):
         self.alg = alg
         self.state_size = state_size
         self.action_size = action_size
+        self.num_instances = num_instances
         self.seed = seed
 
         np.random.seed(seed)
@@ -43,9 +45,11 @@ class MainAgent:
 
     def _select_random_a(self):
         """
-        Select a random action. Actions are clipped to [-1, 1]
+        Select action probabilities randomly. Action probs are clipped to
+        [-1, 1].
         """
-        return np.clip(np.random.randint(self.action_size), -1, 1)
+        actions = np.random.randn(self.num_instances, self.action_size)
+        return np.clip(actions, -1, 1)
 
     def save_model(self, file_name):
         """
@@ -71,7 +75,7 @@ class MainAgent:
         if self.alg.lower() == 'random':
             return None
 
-    def get_action(self, state):
+    def get_action(self, states):
         """
         Extract the action intended by the agent based on the selection
         criteria, either random or using epsilon-greedy policy and taking the
@@ -79,37 +83,37 @@ class MainAgent:
 
         Parameters
         ----------
-        state: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing state information
+        states: np.array/torch.Tensor
+            Array or Tensor singleton or batch containing states information
             either in the shape (1, 37) or (batch_size, 37)
 
         Returns
         -------
         int
             Integer indicating the action selected by the agent based on the
-            state provided.
+            states provided.
         """
         if self.alg.lower() == 'random':
             return self._select_random_a()
         #TODO: Need to implement action selection for final alg
 
-    def compute_update(self, state, action, next_state, reward, done):
+    def compute_update(self, states, actions, next_states, rewards, dones):
         """
         Compute the updated value for the Q-function estimate based on the
         experience tuple.
 
         Parameters
         ----------
-        state: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing state information
-        action: np.array/torch.Tensor
+        states: np.array/torch.Tensor
+            Array or Tensor singleton or batch containing states information
+        actions: np.array/torch.Tensor
             Array or Tensor singleton or batch containing actions taken
-        next_state: np.array/torch.Tensor
+        next_states: np.array/torch.Tensor
             Array or Tensor singleton or batch containing information about what
             state followed actions taken from the states provided by 'state'
-        reward: np.array/torch.Tensor
+        rewards: np.array/torch.Tensor
             Array or Tensor singleton or batch containing reward information
-        done: np.array/torch.Tensor
+        dones: np.array/torch.Tensor
             Array or Tensor singleton or batch representing whether or not the
             episode ended after actions were taken
 
@@ -122,7 +126,7 @@ class MainAgent:
             return 0.0
         #TODO: Implement learning for final algorithm
 
-    def learn(self, state, action, next_state, reward, done):
+    def learn(self, states, actions, next_states, rewards, dones):
         """
         Learn from an experience tuple. If using DQN, which is the default, then
         store an experience tuple into memory and only learn if enough tuples
@@ -130,16 +134,16 @@ class MainAgent:
 
         Parameters
         ----------
-        state: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing state information
-        action: np.array/torch.Tensor
+        states: np.array/torch.Tensor
+            Array or Tensor singleton or batch containing states information
+        actions: np.array/torch.Tensor
             Array or Tensor singleton or batch containing actions taken
-        next_state: np.array/torch.Tensor
+        next_states: np.array/torch.Tensor
             Array or Tensor singleton or batch containing information about what
             state followed actions taken from the states provided by 'state'
-        reward: np.array/torch.Tensor
+        rewards: np.array/torch.Tensor
             Array or Tensor singleton or batch containing reward information
-        done: np.array/torch.Tensor
+        dones: np.array/torch.Tensor
             Array or Tensor singleton or batch representing whether or not the
             episode ended after actions were taken
         """
