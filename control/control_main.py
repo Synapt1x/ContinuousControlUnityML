@@ -48,7 +48,11 @@ class ControlMain:
         """
         Evaluate a provided game state.
         """
-        pass
+        s = curr_env_info.vector_observations
+        r = curr_env_info.rewards
+        d = np.array(curr_env_info.local_done).astype(int)  # convert bool->int
+
+        return s, r, d
 
     @staticmethod
     def _print_progress(iteration, score_avg):
@@ -210,40 +214,45 @@ class ControlMain:
             running inference.
         """
         #TODO: NEeds to be updated for parallel training
-        score = 0
         iteration = 0
 
         # initiate interaction and learning in environment
         env_info = self.env.reset(train_mode=train_mode)[self.brain_name]
-        state = env_info.vector_observations[0]
+        state = env_info.vector_observations
+
+        # get the number of agents and initialize a score for each
+        num_agents = len(env_info.agents)
+        scores = np.zeros(num_agents)
 
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
             action = self.agent.get_action(state)
             env_info = self.env.step(action)[self.brain_name]
-            next_state, reward, done = self._eval_state(env_info)
+            next_state, rewards, done = self._eval_state(env_info)
 
             # learn from experience tuple batch
             if train_mode:
-                self.agent.learn(state, action, next_state, reward, done)
+                self.agent.learn(state, action, next_state, rewards, done)
 
             # increment score and compute average
-            score += reward
+            scores += rewards
             state = next_state
 
-            if done:
+            if np.any(np.array(done)):
                 break
             time.sleep(self.frame_time)
 
             # print average score as training progresses
             iteration += 1
 
-        self.score_store.append(score)
+        self.score_store.extend(scores)
         # compute average over 100 episodes
-        score_avg = np.mean(self.score_store[-100:])
-        self.average_scores.append(score_avg)
+        #TODO: compute average over agents
 
-        return score_avg
+        #score_avg = np.mean(self.score_store[-100:])
+        #self.average_scores.append(score_avg)
+
+        return scores
 
     def train_agent(self, train_mode=True):
         """
@@ -260,9 +269,11 @@ class ControlMain:
             #TODO: Needs to be updated for parallel training
             # run episodes
             while episode < self.max_episodes:
-                avg_after_ep = self.run_episode(train_mode=train_mode)
+                scores = self.run_episode(train_mode=train_mode)
+                #TODO: compute average over agents
+                print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
 
-                print(f'* Episode {episode} completed * avg: {avg_after_ep} *')
+                #print(f'* Episode {episode} completed * avg: {avg_after_ep} *')
 
                 episode += 1
                 if train_mode:

@@ -14,7 +14,7 @@ import os
 import yaml
 import argparse
 
-from navigation.navigation_main import NavigationMain
+from control.control_main import ControlMain
 
 
 # global constants
@@ -59,13 +59,13 @@ def main(train=False, config_file=DEFAULT_CONFIG):
     config_data = load_config(config_file)
     model_file = config_data.pop('model_file')
     model_params = config_data.pop('model_params')
-    navigation_prob = NavigationMain(model_params=model_params, **config_data)
+    control_prob = ControlMain(model_params=model_params, **config_data)
     if train:
-        navigation_prob.train_agent()
-        navigation_prob.save_model(model_file)
+        control_prob.train_agent()
+        control_prob.save_model(model_file)
     else:
-        navigation_prob.load_model(model_file)
-        navigation_prob.train_agent(train_mode=False)
+        control_prob.load_model(model_file)
+        control_prob.train_agent(train_mode=False)
 
 
 if __name__ == '__main__':
