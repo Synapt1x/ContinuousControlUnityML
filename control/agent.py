@@ -17,6 +17,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+from control.torch_models.simple_linear import LinearModel
 
 class MainAgent:
     """
@@ -42,6 +43,10 @@ class MainAgent:
         self.alpha = kwargs.get('alpha', 0.2)
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
+
+        # init what will need to be defined
+        self.actor = LinearModel(self.state_size, self.action_size)
+        self.critic = LinearModel(self.state_size, self.action_size)
 
     def _select_random_a(self):
         """
