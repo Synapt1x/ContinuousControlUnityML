@@ -44,9 +44,11 @@ class MainAgent:
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
 
-        # init what will need to be defined
+        # init what will need to be defined for D4PG
         self.actor = LinearModel(self.state_size, self.action_size)
+        self.actor_target = LinearModel(self.state_size, self.action_size)
         self.critic = LinearModel(self.state_size, self.action_size)
+        self.critic_target = LinearModel(self.state_size, self.action_size)
 
     def _select_random_a(self):
         """
