@@ -130,15 +130,19 @@ class MainAgent:
         # return action as actor policy + random noise for exploration
         actions = [[]] * self.num_instances
         for agent_num in range(self.num_instances):
-            noise = self.epsilon * torch.randn(self.num_instances,
-                                               self.action_size)  #TODO: device
+            noise = self.epsilon * torch.randn(1, self.action_size)  #TODO: device
             actor = self.actors[agent_num]
+
             actor.eval()
             with torch.no_grad():
-                actions = self.actors[agent_num](states) + noise
+                state_vals = states[agent_num]
+                action_values = self.actors[agent_num](state_vals) + noise
+                actions[agent_num] = torch.clamp(
+                    action_values.squeeze(0), -1, 1)
             
             if in_train:
                 actor.train()
+        actions = torch.stack(actions)
 
         return actions.numpy()
 
