@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Ellipse
 
 from control.agent import MainAgent
+from control import utils
 
 
 class ControlMain:
@@ -237,14 +238,13 @@ class ControlMain:
 
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
-            action_probs = self.agent.get_action(states)
-            env_info = self.env.step(action_probs)[self.brain_name]
+            actions = self.agent.get_action(utils.to_tensor(states))
+            env_info = self.env.step(actions)[self.brain_name]
             next_states, rewards, dones = self._eval_state(env_info)
 
             # learn from experience tuple batch
             if train_mode:
-                self.agent.learn(states, action_probs, next_states, rewards,
-                                 dones)
+                self.agent.learn(states, actions, next_states, rewards, dones)
 
             # increment score and compute average
             scores += rewards

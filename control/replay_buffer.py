@@ -25,8 +25,7 @@ class ReplayBuffer:
     replay buffer to sample during learning steps in the DQN algorithm.
     """
 
-    def __init__(self, action_size, buffer_size=1E6, batch_size=32, seed=13):
-        self.action_size = action_size
+    def __init__(self, buffer_size=1E6, batch_size=32, seed=13):
         self.buffer_size = buffer_size
         self.batch_size = batch_size
         self.seed = seed
@@ -38,11 +37,11 @@ class ReplayBuffer:
 
         self.memory = []
 
-    def is_empty(self):
+    def __len__(self):
         """
-        Check to see if memory contains enough tuples for sampling.
+        Return the size of items in the replay buffer.
         """
-        return len(self.memory) < self.batch_size
+        return len(self.memory)
 
     def store_tuple(self, state, action, next_state, reward, done):
         """
