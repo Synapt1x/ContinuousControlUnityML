@@ -64,8 +64,10 @@ class ReplayBuffer:
         """
         # only keep the most recent tuples if memory size has been reached
         if len(self.memory) == self.buffer_size:
-            self.memory = self.memory[1:]
-        self.memory.append((state, action, next_state, reward, done))
+            num_agents = state.shape[0]
+            self.memory = self.memory[num_agents:]
+        for s, a, r, next_s, d in zip(state, action, next_state, reward, done):
+            self.memory.append((s, a, r, next_s, d))
 
     def sample(self):
         """
