@@ -18,6 +18,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from control.torch_models.simple_linear import LinearModel
+from control.replay_buffer import ReplayBuffer
+from control import utils
 
 class MainAgent:
     """
@@ -25,12 +27,12 @@ class MainAgent:
     through the continuous control problem.
     """
 
-    def __init__(self, alg, state_size, action_size, num_instances, seed=13,
+    def __init__(self, alg, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
         self.alg = alg
         self.state_size = state_size
         self.action_size = action_size
-        self.num_instances = num_instances
+        self.num_instances = num_instances  # number of parallel agents
         self.seed = seed
 
         np.random.seed(seed)
@@ -44,11 +46,33 @@ class MainAgent:
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
 
+        # parameters for the replay buffer
+        self.buffer_size = kwargs.get('buffer_size', 1E6)
+        self.batch_size = kwargs.get('batch_size', 32)
+
         # init what will need to be defined for D4PG
-        self.actor = LinearModel(self.state_size, self.action_size)
-        self.actor_target = LinearModel(self.state_size, self.action_size)
-        self.critic = LinearModel(self.state_size, self.action_size)
-        self.critic_target = LinearModel(self.state_size, self.action_size)
+        self.actors = []
+        self.actor_targets = []
+        self.critics = []
+        self.critic_targets = []
+
+        # create all models separately for each agent instance
+        for _ in range(num_instances):
+            for model_type in range(2):
+                base_model = LinearModel(self.state_size, self.action_size)
+                target_model = LinearModel(self.state_size, self.action_size)
+                target_model.load_state_dict(base_model.state_dict())
+
+                if model_type == 0:
+                    self.actors.append(base_model)
+                    self.actor_targets.append(target_model)
+                else:
+                    self.critics.append(base_model)
+                    self.critic_targets.append(target_model)
+
+        # initialize the replay buffer
+        self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
+                                   seed=seed)
 
     def _select_random_a(self):
         """
@@ -82,7 +106,7 @@ class MainAgent:
         if self.alg.lower() == 'random':
             return None
 
-    def get_action(self, states):
+    def get_action(self, states, in_train=True):
         """
         Extract the action intended by the agent based on the selection
         criteria, either random or using epsilon-greedy policy and taking the
@@ -102,7 +126,21 @@ class MainAgent:
         """
         if self.alg.lower() == 'random':
             return self._select_random_a()
-        #TODO: Need to implement action selection for final alg
+
+        # return action as actor policy + random noise for exploration
+        actions = [[]] * self.num_instances
+        for agent_num in range(self.num_instances):
+            noise = self.epsilon * torch.randn(self.num_instances,
+                                               self.action_size)  #TODO: device
+            actor = self.actors[agent_num]
+            actor.eval()
+            with torch.no_grad():
+                actions = self.actors[agent_num](states) + noise
+            
+            if in_train:
+                actor.train()
+
+        return actions.numpy()
 
     def compute_update(self, states, actions, next_states, rewards, dones):
         """
@@ -135,9 +173,7 @@ class MainAgent:
 
     def learn(self, states, actions, next_states, rewards, dones):
         """
-        Learn from an experience tuple. If using DQN, which is the default, then
-        store an experience tuple into memory and only learn if enough tuples
-        are available in the replay buffer to learn from batches of tuples.
+        Learn from an experience tuple.
 
         Parameters
         ----------
@@ -156,7 +192,16 @@ class MainAgent:
         """
         if self.alg.lower() == 'random':
             return None
-        #TODO: Implement learning for final algorithm
+
+        # first append all agent data to replay buffer
+        self.memory.store_tuple(states, actions, rewards, next_states,
+                                dones)
+
+        if len(self.memory) >= self.batch_size:
+            exp_tuples = self.memory.sample()
+            states, actions, rewards, next_states, dones = exp_tuples
+
+            #TODO: finish
 
     def step(self):
         """
