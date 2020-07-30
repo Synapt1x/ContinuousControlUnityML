@@ -133,6 +133,7 @@ class MainAgent:
             noise = self.epsilon * torch.randn(1, self.action_size)  #TODO: device
             actor = self.actors[agent_num]
 
+            # compute actions for this agent after detaching from training
             actor.eval()
             with torch.no_grad():
                 state_vals = states[agent_num]
