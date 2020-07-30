@@ -1,5 +1,5 @@
 # general parameters
-file_path: 'envs/Reacher_Linux_Single_NoVis/Reacher.x86_64'
+file_path: 'envs/Reacher_Linux_Multi_NoVis/Reacher.x86_64'
 model_file: 'models/random.pkl'
 
 # parameters for printing and controlling learning time
@@ -19,3 +19,10 @@ model_params:
   alpha: 0.001
   t_freq: 100
   tau: 0.01
+
+  # parameters for the replay buffer
+  buffer_size: 1000000
+  batch_size: 64
+
+  # architecture
+  inter_dims: [128, 256, 256, 512, 512]
