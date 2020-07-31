@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Custom RL agent for learning how to navigate through the Unity-ML environment
-provided in the project.
+provided in the project. This agent specifically implements the DDPG algorithm.
 
 This particularly aims to learn how to solve a continuous control problem.
 
@@ -17,70 +17,32 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+from control.agents.agent import MainAgent
 from control.torch_models.simple_linear import LinearModel
 from control.replay_buffer import ReplayBuffer
 from control import utils
 
-class MainAgent:
+
+class DDPGAgent(MainAgent):
     """
     This model contains my code for the agent to learn and be able to interact
     through the continuous control problem.
     """
 
-    def __init__(self, alg, state_size, action_size, num_instances=1, seed=13,
+    def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
-        self.alg = alg
-        self.state_size = state_size
-        self.action_size = action_size
-        self.num_instances = num_instances  # number of parallel agents
-        self.seed = seed
+        # first additional parameters specific to DDPG
 
-        np.random.seed(seed)
+        # initialize as in base model
+        super(DDPGAgent, self).__init__(state_size, action_size,
+                                        num_instances, seed, **kwargs)
 
-        # extract hyperparameters for the general algorithm
-        self.epsilon = kwargs.get('epsilon', 0.9)
-        self.epsilon_decay = kwargs.get('epsilon_decay', 0.9999)
-        self.epsilon_min = kwargs.get('epsilon_min', 0.05)
-        self.gamma = kwargs.get('gamma', 0.9)
-        self.alpha = kwargs.get('alpha', 0.2)
-        self.t_freq = kwargs.get('t_freq', 10)
-        self.tau = kwargs.get('tau', 0.1)
-
-        # parameters for the replay buffer
-        self.buffer_size = kwargs.get('buffer_size', 1E6)
-        self.batch_size = kwargs.get('batch_size', 32)
-
-        # init what will need to be defined for D4PG
-        self.actors = []
-        self.actor_targets = []
-        self.critics = []
-        self.critic_targets = []
-
-        # create all models separately for each agent instance
-        for _ in range(num_instances):
-            for model_type in range(2):
-                base_model = LinearModel(self.state_size, self.action_size)
-                target_model = LinearModel(self.state_size, self.action_size)
-                target_model.load_state_dict(base_model.state_dict())
-
-                if model_type == 0:
-                    self.actors.append(base_model)
-                    self.actor_targets.append(target_model)
-                else:
-                    self.critics.append(base_model)
-                    self.critic_targets.append(target_model)
-
-        # initialize the replay buffer
-        self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
-                                   seed=seed)
-
-    def _select_random_a(self):
+    def _init_alg(self):
         """
-        Select action probabilities randomly. Action probs are clipped to
-        [-1, 1].
+        Initialize the algorithm based on what algorithm is specified.
         """
-        actions = np.random.randn(self.num_instances, self.action_size)
-        return np.clip(actions, -1, 1)
+        #TODO: Implement final algorithm initialization for DDPG
+        raise ValueError('Main model called rather than specific algorithm.')
 
     def save_model(self, file_name):
         """
@@ -91,8 +53,7 @@ class MainAgent:
         file_name: str
             File name to which the agent will be saved for future use.
         """
-        if self.alg.lower() == 'random':
-            return None
+        return None
 
     def load_model(self, file_name):
         """
@@ -103,8 +64,7 @@ class MainAgent:
         file_name: str
             File name from which the agent will be loaded.
         """
-        if self.alg.lower() == 'random':
-            return None
+        return None
 
     def get_action(self, states, in_train=True):
         """
@@ -124,28 +84,8 @@ class MainAgent:
             Integer indicating the action selected by the agent based on the
             states provided.
         """
-        if self.alg.lower() == 'random':
-            return self._select_random_a()
-
-        # return action as actor policy + random noise for exploration
-        actions = [[]] * self.num_instances
-        for agent_num in range(self.num_instances):
-            noise = self.epsilon * torch.randn(1, self.action_size)  #TODO: device
-            actor = self.actors[agent_num]
-
-            # compute actions for this agent after detaching from training
-            actor.eval()
-            with torch.no_grad():
-                state_vals = states[agent_num]
-                action_values = self.actors[agent_num](state_vals) + noise
-                actions[agent_num] = torch.clamp(
-                    action_values.squeeze(0), -1, 1)
-            
-            if in_train:
-                actor.train()
-        actions = torch.stack(actions)
-
-        return actions.numpy()
+        #TODO: Implement action selection for final algorithm
+        return self._select_random_a()
 
     def compute_update(self, states, actions, next_states, rewards, dones):
         """
@@ -172,9 +112,8 @@ class MainAgent:
         torch.float32
             Loss value (with grad) based on target and Q-value estimates.
         """
-        if self.alg.lower() == 'random':
-            return 0.0
-        #TODO: Implement learning for final algorithm
+        #TODO: Implement computation for final algorithm
+        return 0.0
 
     def learn(self, states, actions, next_states, rewards, dones):
         """
@@ -195,18 +134,8 @@ class MainAgent:
             Array or Tensor singleton or batch representing whether or not the
             episode ended after actions were taken
         """
-        if self.alg.lower() == 'random':
-            return None
-
-        # first append all agent data to replay buffer
-        self.memory.store_tuple(states, actions, rewards, next_states,
-                                dones)
-
-        if len(self.memory) >= self.batch_size:
-            exp_tuples = self.memory.sample()
-            states, actions, rewards, next_states, dones = exp_tuples
-
-            #TODO: finish
+        #TODO: Implement training for algorithm
+        return None
 
     def step(self):
         """
@@ -214,4 +143,4 @@ class MainAgent:
         to reflect experiences have been acquired and/or learned from.
         """
         #TODO: Implement update step for algorithm
-        pass
+        return None
