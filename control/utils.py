@@ -61,5 +61,5 @@ def to_tensor(in_arr, device=torch.device('cpu'), dtype='float'):
 
     if dtype == 'float':
         tensor = tensor.float()
-    
+
     return tensor.to(device)
