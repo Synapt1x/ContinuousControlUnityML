@@ -21,7 +21,6 @@ matplotlib.use('Agg')  # use backend for saving plots only
 from matplotlib import pyplot as plt
 from matplotlib.patches import Ellipse
 
-from control.agent import MainAgent
 from control import utils
 
 
@@ -32,55 +31,17 @@ class ControlMain:
     models.
     """
 
-    def __init__(self, file_path, model_params, frame_time=0.075,
+    def __init__(self, file_path, alg, model_params, frame_time=0.075,
                  max_episodes=1E5, max_iterations=1E5):
         self.frame_time = frame_time
         self.max_iterations = max_iterations
         self.max_episodes = max_episodes
 
         self.env, self.brain_name, self.brain = self._init_env(file_path)
-        self.agent = self._init_agent(model_params)
+        self.agent = self._init_agent(alg, model_params)
 
         self.score_store = []
         self.average_scores = []
-
-    @staticmethod
-    def _eval_state(curr_env_info):
-        """
-        Evaluate a provided game state.
-        """
-        s = curr_env_info.vector_observations
-        r = curr_env_info.rewards
-        d = np.array(curr_env_info.local_done).astype(int)  # convert bool->int
-
-        return s, r, d
-
-    @staticmethod
-    def _print_progress(iteration, score_avg):
-        """
-        Helper method for printing out the state of the game after completion.
-        """
-        print(f"Average score so far: {score_avg}")
-
-    @staticmethod
-    def _print_on_close(score):
-        """
-        Helper method for printing out the state of the game after completion.
-        """
-        print(f"Final Score: {score}")
-
-    @staticmethod
-    def _get_output_dir():
-        """
-        Return the output file path.
-        """
-        cur_dir = os.path.dirname(os.path.abspath(__file__))
-        out_dir = os.path.join(cur_dir, os.pardir, 'output')
-        cur_date = datetime.datetime.now().strftime('%Y-%m-%d')
-        if not os.path.exists(out_dir):
-            os.mkdir(out_dir)
-
-        return out_dir, cur_date
 
     def _init_env(self, file_path):
         """
@@ -92,7 +53,7 @@ class ControlMain:
 
         return env, brain_name, first_brain
 
-    def _init_agent(self, model_params):
+    def _init_agent(self, alg, model_params):
         """
         Initialize the custom model utilized by the agent.
         """
@@ -102,8 +63,21 @@ class ControlMain:
         state_size = len(env_info.vector_observations[0])
         action_size = self.brain.vector_action_space_size
 
-        return MainAgent(**model_params, state_size=state_size,
-                         action_size=action_size, num_instances=num_agents)
+        if alg.lower() == 'ddpg':
+            # init DDPG
+            from control.agents.ddpg_agent import DDPGAgent
+            return DDPGAgent(**model_params, state_size=state_size,
+                             action_size=action_size, num_instances=num_agents)
+        elif alg.lower() == 'd4pg':
+            # init D4PG
+            from control.agents.d4pg_agent import D4PGAgent
+            return D4PGAgent(**model_params, state_size=state_size,
+                             action_size=action_size, num_instances=num_agents)
+        else:
+            # default to random
+            from control.agents.agent import MainAgent
+            return MainAgent(**model_params, state_size=state_size,
+                            action_size=action_size, num_instances=num_agents)
 
     def _update_scores(self, scores):
         """
@@ -153,7 +127,7 @@ class ControlMain:
 
         if num_eval > 100:
             # Set up plot file and directory names
-            out_dir, cur_date = self._get_output_dir()
+            out_dir, cur_date = utlis.get_output_dir()
             plot_file = os.path.join(out_dir,
                                      f'training-performance-{cur_date}.png')
 
@@ -205,7 +179,7 @@ class ControlMain:
 
         if num_eval > 100:
             # Save results
-            out_dir, cur_date = self._get_output_dir()
+            out_dir, cur_date = utils.get_output_dir()
             res_file = os.path.join(out_dir,
                                     f'results-file-{cur_date}.pkl')
 
@@ -240,7 +214,7 @@ class ControlMain:
             # first have the agent act and evaluate state
             actions = self.agent.get_action(utils.to_tensor(states))
             env_info = self.env.step(actions)[self.brain_name]
-            next_states, rewards, dones = self._eval_state(env_info)
+            next_states, rewards, dones = utils.eval_state(env_info)
 
             # learn from experience tuple batch
             if train_mode:

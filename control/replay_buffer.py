@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Code implementing the functionality for a replay buffer in the D4PG algorithm in
+Code implementing the functionality for a replay buffer in the DDPG algorithm in
 order to solve a continuous control RL problem.
 
 Implementation largely re-used and slightly modified from my implementation in
