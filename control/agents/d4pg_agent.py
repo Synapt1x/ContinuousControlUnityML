@@ -43,7 +43,7 @@ class D4PGAgent(MainAgent):
         """
         Initialize the algorithm based on what algorithm is specified.
         """
-        # init what will need to be defined for 
+        # init storage for actor and critic models
         self.actors = []
         self.actor_targets = []
         self.critics = []
@@ -120,7 +120,7 @@ class D4PGAgent(MainAgent):
                 action_values = self.actors[agent_num](state_vals) + noise
                 actions[agent_num] = torch.clamp(
                     action_values.squeeze(0), -1, 1)
-            
+
             if in_train:
                 actor.train()
         actions = torch.stack(actions)

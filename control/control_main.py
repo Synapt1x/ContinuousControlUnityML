@@ -85,7 +85,7 @@ class ControlMain:
         """
         # store average over agents
         self.score_store.append(np.mean(scores))
-        
+
         # also store average over last 100 episodes over agent average
         score_avg = np.mean(self.score_store[-100:])
         self.average_scores.append(score_avg)
@@ -251,7 +251,7 @@ class ControlMain:
                 scores = self.run_episode(train_mode=train_mode)
 
                 self._update_scores(scores)
-                
+
                 print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
 
                 episode += 1
