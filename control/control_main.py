@@ -200,7 +200,6 @@ class ControlMain:
             Flag to indicate whether or not the agent will be training or just
             running inference.
         """
-        #TODO: NEeds to be updated for parallel training
         iteration = 0
 
         # initiate interaction and learning in environment

@@ -13,7 +13,7 @@ import torch
 from torch import nn
 
 
-class LinearModel(nn.Module):
+class ActorNetwork(nn.Module):
     """
     Torch model containing a set of dense fully connected layers.
     """
@@ -31,7 +31,7 @@ class LinearModel(nn.Module):
         self.seed = seed
         torch.manual_seed(self.seed)
 
-        super(LinearModel, self).__init__()
+        super(ActorNetwork, self).__init__()
 
         # initialize the architecture
         self._init_model()
@@ -68,6 +68,6 @@ class LinearModel(nn.Module):
         data_x = torch.relu(self.input(state.float()))
         for layer in self.hidden_layers:
             data_x = torch.relu(layer(data_x))
-        action_values = torch.relu(self.output(data_x))
+        action_values = torch.tanh(self.output(data_x))
 
         return action_values
