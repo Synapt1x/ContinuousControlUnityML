@@ -40,15 +40,23 @@ class CriticNetwork(nn.Module):
         """
         Define the architecture and all layers in the model.
         """
-        self.input = nn.Linear(self.state_size + self.action_size,
-                               self.inter_dims[0])
-        hidden_layers = []
+        self.state_batch = nn.BatchNorm1d(self.state_size)
+        self.input = nn.Linear(self.state_size, self.inter_dims[0])
+        self.input_batch = nn.BatchNorm1d(self.inter_dims[0])
 
-        for dim_i, hidden_dim in enumerate(self.inter_dims[1:]):
+        hidden_layers = []
+        batch_norms = []
+
+        for dim_i, hidden_dim in enumerate(self.inter_dims[1:-1]):
             prev_dim = self.inter_dims[dim_i]
             hidden_layers.append(nn.Linear(prev_dim, hidden_dim))
+            batch_norms.append(nn.BatchNorm1d(hidden_dim))
 
         self.hidden_layers = nn.ModuleList(hidden_layers)
+        self.hidden_batch_norms = nn.ModuleList(batch_norms)
+
+        self.action_layer = nn.Linear(self.inter_dims[-2] + self.action_size,
+                                      self.inter_dims[-1])
         self.output = nn.Linear(self.inter_dims[-1], 1)
 
     def forward(self, state, action):
@@ -66,10 +74,13 @@ class CriticNetwork(nn.Module):
         torch.Tensor
             Tensor containing output action values determined by the network.
         """
-        input_vec = torch.cat([state, action], dim=1)
-        data_x = torch.relu(self.input(input_vec.float()))
-        for layer in self.hidden_layers:
-            data_x = torch.relu(layer(data_x))
-        action_values = self.output(data_x)
+        data_x = self.state_batch(state.float())
+        data_x = self.input_batch(torch.relu(self.input(data_x)))
+        for layer, batch_norm in zip(self.hidden_layers,
+                                     self.hidden_batch_norms):
+            data_x = batch_norm(torch.relu(layer(data_x)))
+        data_x = torch.cat([data_x, action], dim=1)
+        data_x = torch.relu(self.action_layer(data_x))
+        value_est = self.output(data_x)
 
-        return action_values
+        return value_est
