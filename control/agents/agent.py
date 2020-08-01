@@ -17,7 +17,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from control.torch_models.simple_linear import LinearModel
 from control.replay_buffer import ReplayBuffer
 from control import utils
 
@@ -55,13 +54,11 @@ class MainAgent:
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
 
-        self._init_alg()
+        # extract parameters specific to replay buffer
+        self.buffer_size = kwargs.get('buffer_size', 1E6)
+        self.batch_size = kwargs.get('batch_size', 32)
 
-    def _init_alg(self):
-        """
-        Initialize the algorithm based on what algorithm is specified.
-        """
-        return None
+        self._init_alg()
 
     def _select_random_a(self):
         """
@@ -113,10 +110,10 @@ class MainAgent:
         """
         return self._select_random_a()
 
-    def compute_update(self, states, actions, next_states, rewards, dones):
+    def compute_loss(self, states, actions, next_states, rewards, dones):
         """
-        Compute the updated value for the Q-function estimate based on the
-        experience tuple.
+        Compute the loss based on the information provided and the value /
+        policy parameterizations used in the algorithm.
 
         Parameters
         ----------

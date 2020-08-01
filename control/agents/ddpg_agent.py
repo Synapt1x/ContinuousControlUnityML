@@ -18,7 +18,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from control.agents.agent import MainAgent
-from control.torch_models.simple_linear import LinearModel
+from control.torch_models.actor_net import ActorNetwork
+from control.torch_models.critic_net import CriticNetwork
 from control.replay_buffer import ReplayBuffer
 from control import utils
 
@@ -31,7 +32,7 @@ class DDPGAgent(MainAgent):
 
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
-        # first additional parameters specific to DDPG
+        # first add additional parameters specific to DDPG
 
         # initialize as in base model
         super(DDPGAgent, self).__init__(state_size, action_size,
@@ -41,30 +42,24 @@ class DDPGAgent(MainAgent):
         """
         Initialize the algorithm based on what algorithm is specified.
         """
-        #TODO: Implement final algorithm initialization for DDPG
-        raise ValueError('Main model called rather than specific algorithm.')
+        # initialize the actor and critics separately
+        self.actor = ActorNetwork(self.state_size, self.action_size)
+        self.actor_target = ActorNetwork(self.state_size, self.action_size)
+        self.actor_target.load_state_dict(self.actor.state_dict())
 
-    def save_model(self, file_name):
-        """
-        Save the agent's underlying model(s).
+        self.critic = CriticNetwork(self.state_size, self.action_size)
+        self.critic_target = CriticNetwork(self.state_size, self.action_size)
+        self.critic_target.load_state_dict(self.critic.state_dict())
 
-        Parameters
-        ----------
-        file_name: str
-            File name to which the agent will be saved for future use.
-        """
-        return None
+        # initializer optimizers
+        self.actor_optimizer = optim.Adam(self.critic.parameters(),
+                                          lr=self.alpha)
+        self.critic_optimizer = optim.Adam(self.critic.parameters(),
+                                           lr=self.alpha)
 
-    def load_model(self, file_name):
-        """
-        Load the agent's underlying model(s).
-
-        Parameters
-        ----------
-        file_name: str
-            File name from which the agent will be loaded.
-        """
-        return None
+        # initialize the replay buffer
+        self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
+                                   seed=self.seed)
 
     def get_action(self, states, in_train=True):
         """
@@ -84,13 +79,18 @@ class DDPGAgent(MainAgent):
             Integer indicating the action selected by the agent based on the
             states provided.
         """
-        #TODO: Implement action selection for final algorithm
-        return self._select_random_a()
+        self.actor.eval()
+        with torch.no_grad():
+            action_vals = self.actor(states) + np.random.randn()
+            action_vals = torch.clamp(action_vals, -1, 1)
+        self.actor.train()
 
-    def compute_update(self, states, actions, next_states, rewards, dones):
+        return action_vals.numpy()
+
+    def compute_loss(self, states, actions, next_states, rewards, dones):
         """
-        Compute the updated value for the Q-function estimate based on the
-        experience tuple.
+        Compute the loss based on the information provided and the value /
+        policy parameterizations used in the algorithm.
 
         Parameters
         ----------
@@ -112,8 +112,36 @@ class DDPGAgent(MainAgent):
         torch.float32
             Loss value (with grad) based on target and Q-value estimates.
         """
-        #TODO: Implement computation for final algorithm
-        return 0.0
+        # compute target and critic values for TD loss
+        next_actor_actions = self.actor_target(next_states)
+        critic_targets = self.critic_target(next_states, next_actor_actions)
+
+        # compute loss for critic
+        target_vals = rewards + self.gamma * critic_targets.squeeze(1)
+        critic_vals = self.critic(states, actions)
+
+        loss = F.mse_loss(target_vals, critic_vals)
+
+        # then compute loss for actor
+        cur_actor_actions = self.actor(states)
+        policy_loss = self.critic(states, cur_actor_actions)
+        policy_loss = -policy_loss.mean()
+
+        return loss, policy_loss
+
+    def train_critic(self, loss):
+        """
+        """
+        self.critic.zero_grad()
+        loss.backward()
+        self.critic_optimizer.step()
+
+    def train_actor(self, policy_loss):
+        """
+        """
+        self.actor.zero_grad()
+        policy_loss.backward()
+        self.actor_optimizer.step()
 
     def learn(self, states, actions, next_states, rewards, dones):
         """
@@ -134,13 +162,34 @@ class DDPGAgent(MainAgent):
             Array or Tensor singleton or batch representing whether or not the
             episode ended after actions were taken
         """
-        #TODO: Implement training for algorithm
-        return None
+        self.memory.store_tuple(states, actions, next_states, rewards, dones)
+
+        if len(self.memory) > self.memory.batch_size:
+            s, a, s_p, r, d = self.memory.sample()
+
+            loss, policy_loss = self.compute_loss(s, a, s_p, r, d)
+
+            # train the critic and actor separately
+            self.train_critic(loss)
+            self.train_actor(policy_loss)
+
+            self.step()
 
     def step(self):
         """
         Update state of the agent and take a step through the learning process
         to reflect experiences have been acquired and/or learned from.
         """
-        #TODO: Implement update step for algorithm
-        return None
+        # update actor target network
+        for t_param, q_param in zip(self.actor_target.parameters(),
+                                    self.actor.parameters()):
+            update_q = self.tau * q_param.data
+            target_q = (1.0 - self.tau) * t_param.data
+            t_param.data.copy_(update_q + target_q)
+
+        # update critic target network
+        for t_param, p_param in zip(self.critic_target.parameters(),
+                                    self.critic.parameters()):
+            update_p = self.tau * p_param.data
+            target_q = (1.0 - self.tau) * t_param.data
+            t_param.data.copy_(update_p + target_q)

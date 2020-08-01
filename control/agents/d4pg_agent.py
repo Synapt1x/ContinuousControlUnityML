@@ -18,7 +18,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from control.agents.agent import MainAgent
-from control.torch_models.simple_linear import LinearModel
+from control.torch_models.actor_net import ActorNetwork
+from control.torch_models.critic_net import CriticNetwork
 from control.replay_buffer import ReplayBuffer
 from control import utils
 
@@ -31,9 +32,7 @@ class D4PGAgent(MainAgent):
 
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
-        # extract parameters specific to D4PG (e.g., replay buffer)
-        self.buffer_size = kwargs.get('buffer_size', 1E6)
-        self.batch_size = kwargs.get('batch_size', 32)
+        # first add additional parameters specific to D4PG
 
         # initialize as in base model
         super(D4PGAgent, self).__init__(state_size, action_size,
@@ -51,43 +50,23 @@ class D4PGAgent(MainAgent):
 
         # create all models separately for each agent instance
         for _ in range(self.num_instances):
-            for model_type in range(2):
-                base_model = LinearModel(self.state_size, self.action_size)
-                target_model = LinearModel(self.state_size, self.action_size)
-                target_model.load_state_dict(base_model.state_dict())
+            actor = ActorNetwork(self.state_size, self.action_size)
+            target_actor = ActorNetwork(self.state_size, self.action_size)
+            target_actor.load_state_dict(actor.state_dict())
 
-                if model_type == 0:
-                    self.actors.append(base_model)
-                    self.actor_targets.append(target_model)
-                else:
-                    self.critics.append(base_model)
-                    self.critic_targets.append(target_model)
+            critic = CriticNetwork(self.state_size, self.action_size)
+            target_critic = CriticNetwork(self.state_size, self.action_size)
+            target_critic.load_state_dict(critic.state_dict())
+
+            self.actors.append(actor)
+            self.actor_targets.append(target_actor)
+
+            self.critics.append(critic)
+            self.critic_targets.append(target_critic)
 
         # initialize the replay buffer
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
                                    seed=self.seed)
-
-    def save_model(self, file_name):
-        """
-        Save the agent's underlying model(s).
-
-        Parameters
-        ----------
-        file_name: str
-            File name to which the agent will be saved for future use.
-        """
-        return None
-
-    def load_model(self, file_name):
-        """
-        Load the agent's underlying model(s).
-
-        Parameters
-        ----------
-        file_name: str
-            File name from which the agent will be loaded.
-        """
-        return None
 
     def get_action(self, states, in_train=True):
         """
@@ -127,10 +106,10 @@ class D4PGAgent(MainAgent):
 
         return actions.numpy()
 
-    def compute_update(self, states, actions, next_states, rewards, dones):
+    def compute_loss(self, states, actions, next_states, rewards, dones):
         """
-        Compute the updated value for the Q-function estimate based on the
-        experience tuple.
+        Compute the loss based on the information provided and the value /
+        policy parameterizations used in the algorithm.
 
         Parameters
         ----------
@@ -152,6 +131,7 @@ class D4PGAgent(MainAgent):
         torch.float32
             Loss value (with grad) based on target and Q-value estimates.
         """
+
         #TODO: Implement learning for final algorithm
         return None
 
