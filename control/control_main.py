@@ -212,7 +212,8 @@ class ControlMain:
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
             actions = self.agent.get_action(utils.to_tensor(states))
-            env_info = self.env.step(actions)[self.brain_name]
+            np_actions = actions.cpu().numpy()
+            env_info = self.env.step(np_actions)[self.brain_name]
             next_states, rewards, dones = utils.eval_state(env_info)
 
             # learn from experience tuple batch
