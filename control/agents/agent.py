@@ -110,33 +110,6 @@ class MainAgent:
         """
         return self._select_random_a()
 
-    def compute_loss(self, states, actions, next_states, rewards, dones):
-        """
-        Compute the loss based on the information provided and the value /
-        policy parameterizations used in the algorithm.
-
-        Parameters
-        ----------
-        states: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing states information
-        actions: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing actions taken
-        next_states: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing information about what
-            state followed actions taken from the states provided by 'state'
-        rewards: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing reward information
-        dones: np.array/torch.Tensor
-            Array or Tensor singleton or batch representing whether or not the
-            episode ended after actions were taken
-
-        Returns
-        -------
-        torch.float32
-            Loss value (with grad) based on target and Q-value estimates.
-        """
-        return 0.0
-
     def learn(self, states, actions, next_states, rewards, dones):
         """
         Learn from an experience tuple.

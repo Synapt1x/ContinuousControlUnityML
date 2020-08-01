@@ -218,7 +218,8 @@ class ControlMain:
 
             # learn from experience tuple batch
             if train_mode:
-                self.agent.learn(states, actions, next_states, rewards, dones)
+                self.agent.learn(states, np_actions, next_states, rewards,
+                                 dones)
 
             # increment score and compute average
             scores += rewards
