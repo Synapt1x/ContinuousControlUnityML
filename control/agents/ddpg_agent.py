@@ -43,12 +43,16 @@ class DDPGAgent(MainAgent):
         Initialize the algorithm based on what algorithm is specified.
         """
         # initialize the actor and critics separately
-        self.actor = ActorNetwork(self.state_size, self.action_size)
-        self.actor_target = ActorNetwork(self.state_size, self.action_size)
+        self.actor = ActorNetwork(self.state_size, self.action_size).to(
+            self.device)
+        self.actor_target = ActorNetwork(self.state_size,
+                                         self.action_size).to(self.device)
         self.actor_target.load_state_dict(self.actor.state_dict())
 
-        self.critic = CriticNetwork(self.state_size, self.action_size)
-        self.critic_target = CriticNetwork(self.state_size, self.action_size)
+        self.critic = CriticNetwork(self.state_size, self.action_size).to(
+            self.device)
+        self.critic_target = CriticNetwork(self.state_size,
+                                           self.action_size).to(self.device)
         self.critic_target.load_state_dict(self.critic.state_dict())
 
         # initializer optimizers
@@ -81,11 +85,11 @@ class DDPGAgent(MainAgent):
         """
         self.actor.eval()
         with torch.no_grad():
-            action_vals = self.actor(states) + np.random.randn()
+            action_vals = self.actor(states.to(self.device)) + np.random.randn()
             action_vals = torch.clamp(action_vals, -1, 1)
         self.actor.train()
 
-        return action_vals.numpy()
+        return action_vals
 
     def compute_loss(self, states, actions, next_states, rewards, dones):
         """

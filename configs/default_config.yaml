@@ -1,6 +1,6 @@
 # general parameters
-#file_path: 'envs/Reacher_Linux_Single_NoVis/Reacher.x86_64'
-file_path: 'envs/Reacher_Single.app'
+file_path: 'envs/Reacher_Linux_Single_NoVis/Reacher.x86_64'
+#file_path: 'envs/Reacher_Single.app'
 model_file: 'models/first_ddpg.pkl'
 
 ###########################################################################
