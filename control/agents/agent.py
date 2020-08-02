@@ -60,13 +60,20 @@ class MainAgent:
 
         self._init_alg()
 
+    def _init_alg(self):
+        """
+        Initialize the algorithm.
+        """
+        return None
+
     def _select_random_a(self):
         """
         Select action probabilities randomly. Action probs are clipped to
         [-1, 1].
         """
         actions = np.random.randn(self.num_instances, self.action_size)
-        return np.clip(actions, -1, 1)
+        actions = torch.from_numpy(actions)
+        return torch.clamp(actions, -1, 1)
 
     def save_model(self, file_name):
         """
