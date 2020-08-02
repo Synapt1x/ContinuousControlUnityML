@@ -10,19 +10,16 @@ alg: 'ddpg'
 
 # parameters for printing and controlling learning time
 frame_time: 0.00
-max_episodes: 2000
+max_episodes: 500
 max_iterations: 10000
 
 # model parameters
 model_params:
   # training parameters
-  epsilon: 1.0
-  epsilon_decay: 0.996
-  epsilon_min: 0.05
   gamma: 0.99
-  alpha: 0.001
+  alpha: 0.01
   t_freq: 100
-  tau: 0.01
+  tau: 0.001
 
   # parameters for the replay buffer
   buffer_size: 1000000
