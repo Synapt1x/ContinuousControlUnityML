@@ -42,6 +42,7 @@ class ControlMain:
 
         self.score_store = []
         self.average_scores = []
+        self.solved_score = 30
 
     def _init_env(self, file_path):
         """
@@ -122,12 +123,11 @@ class ControlMain:
             Episode number at which the agent solved the continuous control
             problem by achieving an average score of +13.
         """
-        #TODO: Needs to be updated to new plotting
         num_eval = len(self.average_scores)
 
         if num_eval > 100:
             # Set up plot file and directory names
-            out_dir, cur_date = utlis.get_output_dir()
+            out_dir, cur_date = utils.get_output_dir()
             plot_file = os.path.join(out_dir,
                                      f'training-performance-{cur_date}.png')
 
@@ -155,10 +155,10 @@ class ControlMain:
                 plt.axhline(y=13, color='g', linewidth=1, linestyle='--')
                 ax = fig.gca()
 
-                ax.add_artist(Ellipse((first_solved, 13),
-                                      width=20, height=0.3, facecolor='None',
+                ax.add_artist(Ellipse((first_solved, self.solved_score),
+                                      width=5, height=1, facecolor='None',
                                       edgecolor='r', linewidth=3, zorder=10))
-                plt.text(first_solved + 10, 12.25,
+                plt.text(first_solved + 10, int(self.solved_score * 0.8),
                          f'Solved in {first_solved} episodes', color='r',
                          fontsize=14)
 
@@ -256,10 +256,16 @@ class ControlMain:
                 print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
 
                 episode += 1
-                if train_mode:
-                    self.agent.step()
 
         except KeyboardInterrupt:
             print("Exiting learning gracefully...")
         finally:
+            if train_mode:
+                first_solved = np.argmax(
+                    np.array(self.average_scores) >= self.solved_score)
+                if first_solved > 0:
+                    print(f'*** SOLVED IN {first_solved} EPISODES ***')
+                self.save_training_plot(first_solved)
+                self.save_results()
+
             self.env.close()
