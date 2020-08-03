@@ -23,7 +23,9 @@ CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONFIG = os.path.join(CUR_DIR, 'configs', 'default_config.yaml')
 
 ################### Experimental Parameters ########################
-exp_params = {'alpha': [0.0001, 0.001, 0.01, 0.05]}
+exp_params = {'alpha': [0.0001, 0.001, 0.01, 0.05],
+              'epsilon_decay': [0.999999, 0.99999, 0.99995, 0.9999, 0.9995,
+                                0.999]}
 ####################################################################
 
 
