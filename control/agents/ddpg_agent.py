@@ -33,6 +33,9 @@ class DDPGAgent(MainAgent):
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
         # first add additional parameters specific to DDPG
+        self.epsilon = kwargs.get('epsilon', 0.99)
+        self.epsilon_decay = kwargs.get('epsilon_decay', 0.996)
+        self.epsilon_min = kwargs.get('epsilon_min', 0.01)
 
         # initialize as in base model
         super(DDPGAgent, self).__init__(state_size, action_size,
@@ -65,6 +68,14 @@ class DDPGAgent(MainAgent):
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
                                    seed=self.seed)
 
+    def get_noise(self):
+        """
+        Sample noise to introduce randomness into the action selection process.
+        """
+        noise_vals = np.random.randn(self.action_size) * self.epsilon * 0.5
+
+        return torch.from_numpy(noise_vals).float()
+
     def get_action(self, states, in_train=True):
         """
         Extract the action intended by the agent based on the selection
@@ -75,7 +86,7 @@ class DDPGAgent(MainAgent):
         ----------
         states: np.array/torch.Tensor
             Array or Tensor singleton or batch containing states information
-            either in the shape (1, 37) or (batch_size, 37)
+            either in the shape (1, 33) or (batch_size, 33)
 
         Returns
         -------
@@ -85,7 +96,7 @@ class DDPGAgent(MainAgent):
         """
         self.actor.eval()
         with torch.no_grad():
-            action_vals = self.actor(states.to(self.device)) + np.random.randn()
+            action_vals = self.actor(states.to(self.device)) + self.get_noise()
             action_vals = torch.clamp(action_vals, -1, 1)
         self.actor.train()
 
@@ -197,3 +208,8 @@ class DDPGAgent(MainAgent):
             update_p = self.tau * p_param.data
             target_q = (1.0 - self.tau) * t_param.data
             t_param.data.copy_(update_p + target_q)
+
+        # also decay epsilon for noise process
+        self.epsilon = np.max(
+            [self.epsilon_min, self.epsilon * self.epsilon_decay])
+        print(f'epsilon : {self.epsilon}')
