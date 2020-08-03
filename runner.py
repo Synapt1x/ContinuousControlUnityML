@@ -52,14 +52,22 @@ def load_config(path):
     return config_data
 
 
-def main(train=False, config_file=DEFAULT_CONFIG):
+def parse_config(config_data):
+    """
+    Parse the configuration arguments.
+    """
+    model_file = config_data.pop('model_file')
+    model_params = config_data.pop('model_params')
+
+    return config_data, model_file, model_params
+
+
+def main(model_file, model_params, train, config_data):
     """
     Main runner for the code CLI.
     """
-    config_data = load_config(config_file)
-    model_file = config_data.pop('model_file')
-    model_params = config_data.pop('model_params')
     control_prob = ControlMain(model_params=model_params, **config_data)
+
     if train:
         control_prob.train_agent()
         control_prob.save_model(model_file)
@@ -69,5 +77,13 @@ def main(train=False, config_file=DEFAULT_CONFIG):
 
 
 if __name__ == '__main__':
+    # load params
     args = parse_args()
-    main(**args)
+
+    train_on = args.get('train', False)
+    config_file = args.get('config_file', DEFAULT_CONFIG)
+    config_args = load_config(config_file)
+    config_data, model_file, model_params = parse_config(config_args)
+
+    # run the model with the provided parameters
+    main(model_file, model_params, train_on, config_data)
