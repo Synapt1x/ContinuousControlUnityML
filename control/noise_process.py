@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This code contains my implementation of an Uhlenbeck-Ornstein process for
+This code contains my implementation of an Ornstein-Uhlenbeck process for
 generating random noise during action selection. This implementation was
 inspired by and borrows from:
 
@@ -15,7 +15,7 @@ For Deep Reinforcement Learning Nanodegree offered by Udacity.
 import numpy as np
 
 
-class UhlenbeckOrnstein():
+class OrnsteinUhlenbeck():
     """
     This class contains functionality for sampling from a random noise process
     in order to add exploratory noise to actions during the DDPG algorithm.
@@ -47,13 +47,13 @@ class UhlenbeckOrnstein():
 
     def init_process(self):
         """
-        Initialize or reset the Uhlenbeck-Ornstein process.
+        Initialize or reset the Ornstein-Uhlenbeck process.
         """
         self.y = 0.0
 
     def uhlenbeck_mu(self):
         """
-        Calculate the Uhlenbeck mu based on theta * (mu - Y_t)
+        Calculate the Ornstein-Uhlenbeck mu based on theta * (mu - Y_t)
         """
         return self.theta * (self.mu - self.y)
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     from matplotlib import pyplot as plt
 
-    print('Testing Uhlenbeck-Ornstein process noise and saving to '
+    print('Testing Ornstein-Uhlenbeck process noise and saving to '
           'test_uhlenbeck.png')
 
     t_end = 1
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     t = np.linspace(t_end, t_start, n)
     y = []
 
-    uo = UhlenbeckOrnstein(dt=dt)
+    uo = OrnsteinUhlenbeck(dt=dt)
     for i in range(n):
         y.append(uo.sample())
 
