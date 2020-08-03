@@ -22,6 +22,11 @@ model_params:
   t_freq: 100
   tau: 0.001
 
+  # epsilon decay for random noise
+  epsilon: 1.0
+  epsilon_decay: 0.99995
+  epsilon_min: 0.01
+
   # parameters for the replay buffer
   buffer_size: 1000000
   batch_size: 64
