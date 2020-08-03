@@ -73,8 +73,9 @@ class DDPGAgent(MainAgent):
         Sample noise to introduce randomness into the action selection process.
         """
         noise_vals = np.random.randn(self.action_size) * self.epsilon * 0.5
+        noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
-        return torch.from_numpy(noise_vals).float()
+        return noise_vals
 
     def get_action(self, states, in_train=True):
         """
@@ -212,4 +213,3 @@ class DDPGAgent(MainAgent):
         # also decay epsilon for noise process
         self.epsilon = np.max(
             [self.epsilon_min, self.epsilon * self.epsilon_decay])
-        print(f'epsilon : {self.epsilon}')

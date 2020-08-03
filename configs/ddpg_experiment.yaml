@@ -24,7 +24,7 @@ model_params:
 
   # epsilon decay for random noise
   epsilon: 1.0
-  epsilon_decay: [0.99999, 0.99995, 0.9999, 0.9995, 0.999]
+  epsilon_decay: 0.99999
   epsilon_min: 0.01
 
   # parameters for the replay buffer
