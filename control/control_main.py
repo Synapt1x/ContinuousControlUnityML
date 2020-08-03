@@ -31,11 +31,12 @@ class ControlMain:
     models.
     """
 
-    def __init__(self, file_path, alg, model_params, frame_time=0.075,
-                 max_episodes=1E5, max_iterations=1E5):
+    def __init__(self, file_path, alg, graph_file, model_params,
+                 frame_time=0.075, max_episodes=1E5, max_iterations=1E5):
         self.frame_time = frame_time
         self.max_iterations = max_iterations
         self.max_episodes = max_episodes
+        self.graph_file = graph_file
 
         self.env, self.brain_name, self.brain = self._init_env(file_path)
         self.agent = self._init_agent(alg, model_params)
@@ -121,15 +122,16 @@ class ControlMain:
         ----------
         first_solved: int
             Episode number at which the agent solved the continuous control
-            problem by achieving an average score of +13.
+            problem by achieving an average score of +30.
         """
         num_eval = len(self.average_scores)
 
         if num_eval > 100:
             # Set up plot file and directory names
             out_dir, cur_date = utils.get_output_dir()
-            plot_file = os.path.join(out_dir,
-                                     f'training-performance-{cur_date}.png')
+            plot_file = os.path.join(
+                out_dir, self.graph_file.replace(
+                    '.png', f'-date-{cur_date}.png'))
 
             # plot and save the plot file
             fig = plt.figure(figsize=(12, 8))
