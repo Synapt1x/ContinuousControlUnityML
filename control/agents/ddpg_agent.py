@@ -17,6 +17,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+from control.noise_process import OrnsteinUhlenbeck
 from control.agents.agent import MainAgent
 from control.torch_models.actor_net import ActorNetwork
 from control.torch_models.critic_net import CriticNetwork
@@ -36,6 +37,12 @@ class DDPGAgent(MainAgent):
         self.epsilon = kwargs.get('epsilon', 0.99)
         self.epsilon_decay = kwargs.get('epsilon_decay', 0.996)
         self.epsilon_min = kwargs.get('epsilon_min', 0.01)
+
+        self.theta = kwargs.get('theta', 0.15)
+        self.sigma = kwargs.get('sigma', 0.20)
+        self.dt = kwargs.get('dt', 0.0001)
+        self.noise = OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
+                                       sigma=self.sigma)
 
         # initialize as in base model
         super(DDPGAgent, self).__init__(state_size, action_size,
@@ -72,7 +79,7 @@ class DDPGAgent(MainAgent):
         """
         Sample noise to introduce randomness into the action selection process.
         """
-        noise_vals = np.random.randn(self.action_size) * self.epsilon * 0.5
+        noise_vals = self.noise.sample()
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
         return noise_vals

@@ -211,6 +211,9 @@ class ControlMain:
         # get the number of agents and initialize a score for each
         scores = np.zeros(self.agent.num_instances)
 
+        # reset noise process for Ornstein-Uhlenbeck process
+        self.agent.noise.init_process()
+
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
             actions = self.agent.get_action(utils.to_tensor(states))

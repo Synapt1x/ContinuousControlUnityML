@@ -128,8 +128,8 @@ class MainAgent:
         actions: np.array/torch.Tensor
             Array or Tensor singleton or batch containing actions taken
         next_states: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing information about what
-            state followed actions taken from the states provided by 'state'
+            Array or Tensor singleton or batch containing information about
+            what state followed actions taken from the states provided
         rewards: np.array/torch.Tensor
             Array or Tensor singleton or batch containing reward information
         dones: np.array/torch.Tensor
