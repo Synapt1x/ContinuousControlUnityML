@@ -251,11 +251,9 @@ class ControlMain:
         """
         episode = 1
         try:
-            #TODO: Needs to be updated for parallel training
             # run episodes
             while episode < self.max_episodes:
                 scores = self.run_episode(train_mode=train_mode)
-                print(f'epsilon : {self.agent.epsilon}')
 
                 self._update_scores(scores)
 

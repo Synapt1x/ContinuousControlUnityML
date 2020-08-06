@@ -82,9 +82,8 @@ class DDPGAgent(MainAgent):
 
     def get_action(self, states, in_train=True):
         """
-        Extract the action intended by the agent based on the selection
-        criteria, either random or using epsilon-greedy policy and taking the
-        max from Q(s=state, a) from Q.
+        Extract the action values to be used in the environment based on the
+        actor network along with a Ornstein-Uhlenbeck noise process.
 
         Parameters
         ----------
@@ -201,19 +200,15 @@ class DDPGAgent(MainAgent):
         to reflect experiences have been acquired and/or learned from.
         """
         # update actor target network
-        for t_param, q_param in zip(self.actor_target.parameters(),
+        for t_param, p_param in zip(self.actor_target.parameters(),
                                     self.actor.parameters()):
-            update_q = self.tau * q_param.data
-            target_q = (1.0 - self.tau) * t_param.data
-            t_param.data.copy_(update_q + target_q)
+            update_p = self.tau * p_param.data
+            target_p = (1.0 - self.tau) * t_param.data
+            t_param.data.copy_(update_p + target_p)
 
         # update critic target network
-        for t_param, p_param in zip(self.critic_target.parameters(),
+        for t_param, v_param in zip(self.critic_target.parameters(),
                                     self.critic.parameters()):
-            update_p = self.tau * p_param.data
-            target_q = (1.0 - self.tau) * t_param.data
-            t_param.data.copy_(update_p + target_q)
-
-        # also decay epsilon for noise process
-        self.epsilon = np.max(
-            [self.epsilon_min, self.epsilon * self.epsilon_decay])
+            update_v = self.tau * v_param.data
+            target_v = (1.0 - self.tau) * t_param.data
+            t_param.data.copy_(update_v + target_v)
