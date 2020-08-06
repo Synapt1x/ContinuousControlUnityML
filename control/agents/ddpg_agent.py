@@ -34,10 +34,6 @@ class DDPGAgent(MainAgent):
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
         # first add additional parameters specific to DDPG
-        self.epsilon = kwargs.get('epsilon', 0.99)
-        self.epsilon_decay = kwargs.get('epsilon_decay', 0.996)
-        self.epsilon_min = kwargs.get('epsilon_min', 0.01)
-
         self.theta = kwargs.get('theta', 0.15)
         self.sigma = kwargs.get('sigma', 0.20)
         self.dt = kwargs.get('dt', 0.0001)
@@ -67,9 +63,9 @@ class DDPGAgent(MainAgent):
 
         # initializer optimizers
         self.actor_optimizer = optim.Adam(self.critic.parameters(),
-                                          lr=self.alpha)
+                                          lr=self.actor_alpha)
         self.critic_optimizer = optim.Adam(self.critic.parameters(),
-                                           lr=self.alpha)
+                                           lr=self.critic_alpha)
 
         # initialize the replay buffer
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
@@ -140,7 +136,8 @@ class DDPGAgent(MainAgent):
         critic_targets = self.critic_target(next_states, next_actor_actions)
 
         # compute loss for critic
-        target_vals = rewards + self.gamma * critic_targets.squeeze(1)
+        done_v = 1 - dones
+        target_vals = rewards + self.gamma * critic_targets.squeeze(1) * done_v
         critic_vals = self.critic(states, actions)
 
         loss = F.mse_loss(target_vals, critic_vals)
@@ -155,14 +152,14 @@ class DDPGAgent(MainAgent):
     def train_critic(self, loss):
         """
         """
-        self.critic.zero_grad()
+        self.critic_optimizer.zero_grad()
         loss.backward()
         self.critic_optimizer.step()
 
     def train_actor(self, policy_loss):
         """
         """
-        self.actor.zero_grad()
+        self.actor_optimizer.zero_grad()
         policy_loss.backward()
         self.actor_optimizer.step()
 
