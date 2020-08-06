@@ -12,6 +12,8 @@ import numpy as np
 import torch
 from torch import nn
 
+from control.utils import compute_bound
+
 
 class CriticNetwork(nn.Module):
     """
@@ -35,6 +37,7 @@ class CriticNetwork(nn.Module):
 
         # initialize the architecture
         self._init_model()
+        self._init_weights()
 
     def _init_model(self):
         """
@@ -58,6 +61,13 @@ class CriticNetwork(nn.Module):
         self.action_layer = nn.Linear(self.inter_dims[-2] + self.action_size,
                                       self.inter_dims[-1])
         self.output = nn.Linear(self.inter_dims[-1], 1)
+
+    def _init_weights(self):
+        for layer in self.hidden_layers:
+            layer_size = layer.weight.data.size()
+            b = compute_bound(layer_size)
+            layer.weight.data.uniform_(-b, b)
+        self.output.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state, action):
         """
