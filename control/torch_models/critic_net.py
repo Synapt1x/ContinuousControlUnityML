@@ -63,8 +63,8 @@ class CriticNetwork(nn.Module):
         self.output = nn.Linear(self.inter_dims[-1], 1)
 
     def _init_weights(self):
-        for layer in self.hidden_layers:
-            layer_size = layer.weight.data.size()
+        for layer_num, layer in enumerate(self.hidden_layers):
+            layer_size = self.inter_dims[layer_num]
             b = compute_bound(layer_size)
             layer.weight.data.uniform_(-b, b)
         self.output.weight.data.uniform_(-3e-3, 3e-3)
