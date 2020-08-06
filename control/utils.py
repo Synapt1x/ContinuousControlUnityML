@@ -63,3 +63,14 @@ def to_tensor(in_arr, device=torch.device('cpu'), dtype='float'):
         tensor = tensor.float()
 
     return tensor.to(device)
+
+
+def compute_bound(layer_fanin):
+    """
+    Compute the uniform initialization bound value using the fan-in (input size)
+    for a layer. This is used for initialization of all layers except output
+    layers as discussed in Lillicrap et al.
+    """
+    bound = 1 / np.sqrt(layer_fanin)
+
+    return bound

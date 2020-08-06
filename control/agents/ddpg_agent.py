@@ -36,7 +36,7 @@ class DDPGAgent(MainAgent):
         # first add additional parameters specific to DDPG
         self.theta = kwargs.get('theta', 0.15)
         self.sigma = kwargs.get('sigma', 0.20)
-        self.dt = kwargs.get('dt', 0.0001)
+        self.dt = kwargs.get('dt', 0.005)
         self.noise = OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
                                        sigma=self.sigma)
 
@@ -49,16 +49,16 @@ class DDPGAgent(MainAgent):
         Initialize the algorithm based on what algorithm is specified.
         """
         # initialize the actor and critics separately
-        self.actor = ActorNetwork(self.state_size, self.action_size).to(
-            self.device)
-        self.actor_target = ActorNetwork(self.state_size,
-                                         self.action_size).to(self.device)
+        self.actor = ActorNetwork(self.state_size, self.action_size,
+                                  self.inter_dims).to(self.device)
+        self.actor_target = ActorNetwork(self.state_size, self.action_size,
+                                         self.inter_dims).to(self.device)
         self.actor_target.load_state_dict(self.actor.state_dict())
 
-        self.critic = CriticNetwork(self.state_size, self.action_size).to(
-            self.device)
-        self.critic_target = CriticNetwork(self.state_size,
-                                           self.action_size).to(self.device)
+        self.critic = CriticNetwork(self.state_size, self.action_size,
+                                    self.inter_dims).to(self.device)
+        self.critic_target = CriticNetwork(self.state_size, self.action_size,
+                                           self.inter_dims).to(self.device)
         self.critic_target.load_state_dict(self.critic.state_dict())
 
         # initializer optimizers
@@ -142,7 +142,10 @@ class DDPGAgent(MainAgent):
         loss = F.mse_loss(target_vals, critic_vals)
 
         # then compute loss for actor
-        cur_actor_actions = self.actor(states)
+        self.actor.eval()
+        with torch.no_grad():
+            cur_actor_actions = self.actor(states)
+        self.actor.train()
         policy_loss = self.critic(states, cur_actor_actions)
         policy_loss = -policy_loss.mean()
 
@@ -151,6 +154,7 @@ class DDPGAgent(MainAgent):
     def train_critic(self, loss):
         """
         """
+        self.critic.train()
         self.critic_optimizer.zero_grad()
         loss.backward()
         self.critic_optimizer.step()
@@ -158,6 +162,7 @@ class DDPGAgent(MainAgent):
     def train_actor(self, policy_loss):
         """
         """
+        self.actor.train()
         self.actor_optimizer.zero_grad()
         policy_loss.backward()
         self.actor_optimizer.step()

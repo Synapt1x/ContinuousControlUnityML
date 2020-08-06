@@ -12,6 +12,8 @@ import numpy as np
 import torch
 from torch import nn
 
+from control.utils import compute_bound
+
 
 class ActorNetwork(nn.Module):
     """
@@ -35,6 +37,7 @@ class ActorNetwork(nn.Module):
 
         # initialize the architecture
         self._init_model()
+        self._init_weights()
 
     def _init_model(self):
         """
@@ -55,6 +58,13 @@ class ActorNetwork(nn.Module):
         self.hidden_layers = nn.ModuleList(hidden_layers)
         self.hidden_batch_norms = nn.ModuleList(batch_norms)
         self.output = nn.Linear(self.inter_dims[-1], self.action_size)
+
+    def _init_weights(self):
+        for layer_num, layer in enumerate(self.hidden_layers):
+            layer_size = self.inter_dims[layer_num]
+            b = compute_bound(layer_size)
+            layer.weight.data.uniform_(-b, b)
+        self.output.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state):
         """
