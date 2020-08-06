@@ -50,7 +50,8 @@ class MainAgent:
         self.epsilon_decay = kwargs.get('epsilon_decay', 0.9999)
         self.epsilon_min = kwargs.get('epsilon_min', 0.05)
         self.gamma = kwargs.get('gamma', 0.9)
-        self.alpha = kwargs.get('alpha', 0.2)
+        self.actor_alpha = kwargs.get('actor_alpha', 0.0001)
+        self.critic_alpha = kwargs.get('critic_alpha', 0.001)
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
 
