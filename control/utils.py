@@ -74,3 +74,17 @@ def compute_bound(layer_fanin):
     bound = 1 / np.sqrt(layer_fanin)
 
     return bound
+
+
+def copy_weights(network, target_network, tau=1.0):
+    """
+    Copy weights from network to target_network. If tau is provided then compute
+    a soft update, else assume a complete copy of weights between networks.
+    """
+    for t_param, p_param in zip(target_network.parameters(),
+                                network.parameters()):
+        update_p = tau * p_param.data
+        target_p = (1.0 - tau) * t_param.data
+        t_param.data.copy_(update_p + target_p)
+
+    return target_network
