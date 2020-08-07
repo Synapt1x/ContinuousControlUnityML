@@ -20,7 +20,8 @@ class CriticNetwork(nn.Module):
     Torch model containing a set of dense fully connected layers.
     """
 
-    def __init__(self, state_size, action_size, inter_dims=None, seed=13):
+    def __init__(self, state_size, action_size, inter_dims=None,
+                 use_batch_norm=False, seed=13):
         if inter_dims is None:
             self.inter_dims = [64, 256]
         else:
@@ -28,6 +29,7 @@ class CriticNetwork(nn.Module):
 
         self.state_size = state_size
         self.action_size = action_size
+        self.use_batch_norm = use_batch_norm
 
         # set the seed
         self.seed = seed
@@ -43,9 +45,11 @@ class CriticNetwork(nn.Module):
         """
         Define the architecture and all layers in the model.
         """
-        self.state_batch = nn.BatchNorm1d(self.state_size)
         self.input = nn.Linear(self.state_size, self.inter_dims[0])
-        self.input_batch = nn.BatchNorm1d(self.inter_dims[0])
+
+        if self.use_batch_norm:
+            self.state_batch = nn.BatchNorm1d(self.state_size)
+            self.input_batch = nn.BatchNorm1d(self.inter_dims[0])
 
         hidden_layers = []
         batch_norms = []
@@ -53,10 +57,12 @@ class CriticNetwork(nn.Module):
         for dim_i, hidden_dim in enumerate(self.inter_dims[1:-1]):
             prev_dim = self.inter_dims[dim_i]
             hidden_layers.append(nn.Linear(prev_dim, hidden_dim))
-            batch_norms.append(nn.BatchNorm1d(hidden_dim))
+            if self.use_batch_norm:
+                batch_norms.append(nn.BatchNorm1d(hidden_dim))
 
         self.hidden_layers = nn.ModuleList(hidden_layers)
-        self.hidden_batch_norms = nn.ModuleList(batch_norms)
+        if self.use_batch_norm:
+            self.hidden_batch_norms = nn.ModuleList(batch_norms)
 
         self.action_layer = nn.Linear(self.inter_dims[-2] + self.action_size,
                                       self.inter_dims[-1])
@@ -76,7 +82,7 @@ class CriticNetwork(nn.Module):
         Parameters
         ----------
         state: torch.Tensor
-            A 37-length Torch.Tensor containing a state vector to be run through
+            A 33-length Torch.Tensor containing a state vector to be run through
             the network.
 
         Returns
@@ -84,11 +90,20 @@ class CriticNetwork(nn.Module):
         torch.Tensor
             Tensor containing output action values determined by the network.
         """
-        data_x = self.state_batch(state.float())
-        data_x = self.input_batch(torch.relu(self.input(data_x)))
-        for layer, batch_norm in zip(self.hidden_layers,
-                                     self.hidden_batch_norms):
-            data_x = batch_norm(torch.relu(layer(data_x)))
+        if self.use_batch_norm:
+            data_x = self.state_batch(state.float())
+            data_x = self.input_batch(torch.relu(self.input(data_x)))
+
+            for layer, batch_norm in zip(self.hidden_layers,
+                                         self.hidden_batch_norms):
+                data_x = batch_norm(torch.relu(layer(data_x)))
+                data_x = torch.relu(layer(data_x))
+        else:
+            data_x = torch.relu(self.input(state.float()))
+
+            for layer in self.hidden_layers:
+                data_x = torch.relu(layer(data_x))
+
         data_x = torch.cat([data_x, action], dim=1)
         data_x = torch.relu(self.action_layer(data_x))
         value_est = self.output(data_x)

@@ -62,7 +62,7 @@ class DDPGAgent(MainAgent):
         self.critic_target = utils.copy_weights(self.critic, self.critic_target)
 
         # initializer optimizers
-        self.actor_optimizer = optim.Adam(self.critic.parameters(),
+        self.actor_optimizer = optim.Adam(self.actor.parameters(),
                                           lr=self.actor_alpha)
         self.critic_optimizer = optim.Adam(self.critic.parameters(),
                                            lr=self.critic_alpha)
