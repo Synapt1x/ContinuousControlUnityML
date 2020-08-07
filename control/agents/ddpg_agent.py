@@ -53,13 +53,13 @@ class DDPGAgent(MainAgent):
                                   self.inter_dims).to(self.device)
         self.actor_target = ActorNetwork(self.state_size, self.action_size,
                                          self.inter_dims).to(self.device)
-        self.actor_target.load_state_dict(self.actor.state_dict())
+        self.actor_target = utils.copy_weights(self.actor, self.actor_target)
 
         self.critic = CriticNetwork(self.state_size, self.action_size,
                                     self.inter_dims).to(self.device)
         self.critic_target = CriticNetwork(self.state_size, self.action_size,
                                            self.inter_dims).to(self.device)
-        self.critic_target.load_state_dict(self.critic.state_dict())
+        self.critic_target = utils.copy_weights(self.critic, self.critic_target)
 
         # initializer optimizers
         self.actor_optimizer = optim.Adam(self.critic.parameters(),
@@ -199,21 +199,16 @@ class DDPGAgent(MainAgent):
 
             self.step()
 
+
     def step(self):
         """
         Update state of the agent and take a step through the learning process
         to reflect experiences have been acquired and/or learned from.
         """
         # update actor target network
-        for t_param, p_param in zip(self.actor_target.parameters(),
-                                    self.actor.parameters()):
-            update_p = self.tau * p_param.data
-            target_p = (1.0 - self.tau) * t_param.data
-            t_param.data.copy_(update_p + target_p)
+        self.actor_target = utils.copy_weights(self.actor, self.actor_target,
+                                               self.tau)
 
         # update critic target network
-        for t_param, v_param in zip(self.critic_target.parameters(),
-                                    self.critic.parameters()):
-            update_v = self.tau * v_param.data
-            target_v = (1.0 - self.tau) * t_param.data
-            t_param.data.copy_(update_v + target_v)
+        self.critic_target = utils.copy_weights(self.critic, self.critic_target,
+                                                self.tau)
