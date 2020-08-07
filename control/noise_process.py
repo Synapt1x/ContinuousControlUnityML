@@ -79,6 +79,7 @@ class OrnsteinUhlenbeck():
 
         return y
 
+
 if __name__ == '__main__':
 
     from matplotlib import pyplot as plt
