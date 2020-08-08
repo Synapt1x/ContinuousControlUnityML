@@ -27,8 +27,8 @@ from control import utils
 
 class DDPGAgent(MainAgent):
     """
-    This model contains my code for the agent to learn and be able to interact
-    through the continuous control problem.
+    This model contains my code for the DDPG agent to learn and be able to
+    interact through the continuous control problem.
     """
 
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
