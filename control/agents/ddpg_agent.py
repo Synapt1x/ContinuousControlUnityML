@@ -33,27 +33,6 @@ class DDPGAgent(MainAgent):
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
         # first add additional parameters specific to DDPG
-        self.theta = kwargs.get('theta', 0.15)
-        self.sigma = kwargs.get('sigma', 0.20)
-        self.dt = kwargs.get('dt', 0.005)
-        self.use_ornstein = kwargs.get('use_ornstein', True)
-        self.epsilon = kwargs.get('epsilon', 1.0)
-        self.epsilon_decay = kwargs.get('epsilon_decay', 0.99)
-        self.epsilon_min = kwargs.get('epsilon_min', 0.01)
-
-        if self.use_ornstein:
-            from control.noise_processes.noise_process import OrnsteinUhlenbeck
-            self.noise = OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
-                                           sigma=self.sigma)
-        else:
-            from control.noise_processes.normal_noise import NormalNoise
-
-            noise_variance = kwargs.get('noise_variance', 0.3)
-
-            self.noise = NormalNoise(epsilon=self.epsilon,
-                                     epsilon_decay=self.epsilon_decay,
-                                     epsilon_min=self.epsilon_min,
-                                     noise_variance=noise_variance)
 
         # initialize as in base model
         super(DDPGAgent, self).__init__(state_size, action_size,
@@ -151,13 +130,10 @@ class DDPGAgent(MainAgent):
         """
         self.actor.eval()
         with torch.no_grad():
-            if in_train:
-                noise_vals = torch.stack(
-                    [self.get_noise() for _ in range(self.action_size)]
-                )
-                action_vals = self.actor(states.to(self.device)) + noise_vals
-            else:
-                action_vals = self.actor(states.to(self.device))
+            noise_vals = torch.stack(
+                [self.get_noise() for _ in range(self.action_size)]
+            )
+            action_vals = self.actor(states.to(self.device)) + noise_vals
             action_vals = torch.clamp(action_vals, -1, 1)
         self.actor.train()
 
