@@ -17,6 +17,9 @@ import argparse
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader, TensorDataset
+
+from control.datasets import TrajectoryDataset
 
 
 class ReplayBuffer:
@@ -42,6 +45,13 @@ class ReplayBuffer:
         Return the size of items in the replay buffer.
         """
         return len(self.memory)
+
+    def empty(self):
+        """
+        Remove all tuples stored in the replay buffer. This is useful for PPO to
+        use the replay buffer as storage for trajectories.
+        """
+        self.memory = []
 
     def store_tuple(self, state, action, next_state, reward, done):
         """
@@ -84,3 +94,20 @@ class ReplayBuffer:
                           for i in range(len(exp_batch_lists)))
 
         return exp_batch
+
+    def get_dataset(self, batch_size=32):
+        """
+        Extract a dataset of T timesteps over N learners stored in the buffer as
+        a storage for trajectories. This is mainly used for PPO.
+        """
+        zipped_batch = list(zip(*self.memory))
+
+        full_batch = list(torch.tensor(np.array(data_batch),
+                          requires_grad=True).float().to(self.device)
+                          for data_batch in zipped_batch)
+        trajectory_dataset = TrajectoryDataset(*full_batch)
+
+        dataset = DataLoader(trajectory_dataset, batch_size=batch_size,
+                             shuffle=False)
+
+        return dataset

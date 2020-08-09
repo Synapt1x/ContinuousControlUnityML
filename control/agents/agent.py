@@ -33,6 +33,9 @@ class MainAgent:
         self.num_instances = num_instances  # number of parallel agents
         self.seed = seed
 
+        self.critic_loss_avgs = []
+        self.actor_loss_avgs = []
+
         np.random.seed(seed)
 
         # initalize device; use GPU if available
@@ -46,9 +49,6 @@ class MainAgent:
             torch.backends.cudnn.benchmark = False
 
         # extract hyperparameters for the general algorithm
-        self.epsilon = kwargs.get('epsilon', 0.9)
-        self.epsilon_decay = kwargs.get('epsilon_decay', 0.9999)
-        self.epsilon_min = kwargs.get('epsilon_min', 0.05)
         self.gamma = kwargs.get('gamma', 0.9)
         self.actor_alpha = kwargs.get('actor_alpha', 0.0001)
         self.critic_alpha = kwargs.get('critic_alpha', 0.001)
@@ -65,13 +65,42 @@ class MainAgent:
         self.t_update = kwargs.get('t_update', 20)
         self.num_updates = kwargs.get('num_updates', 10)
 
+        # initialize random noise parameters
+        self.use_ornstein = kwargs.get('use_ornstein', True)
+        self.epsilon = kwargs.get('epsilon', 1.0)
+        self.epsilon_decay = kwargs.get('epsilon_decay', 0.99)
+        self.epsilon_min = kwargs.get('epsilon_min', 0.01)
+        # initialize parameters for Ornstein
+        self.theta = kwargs.get('theta', 0.15)
+        self.sigma = kwargs.get('sigma', 0.20)
+        self.dt = kwargs.get('dt', 0.005)
+        noise_variance = kwargs.get('noise_variance', 0.3)
+
         self._init_alg()
+        self.noise = self._init_noise(noise_variance)
 
     def _init_alg(self):
         """
         Initialize the algorithm.
         """
         return None
+
+    def _init_noise(self, noise_variance):
+        """
+        Get the noise process specified.
+        """
+        if self.use_ornstein:
+            from control.noise_processes.noise_process import OrnsteinUhlenbeck
+
+            return OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
+                                     sigma=self.sigma)
+        else:
+            from control.noise_processes.normal_noise import NormalNoise
+
+            return NormalNoise(epsilon=self.epsilon,
+                               epsilon_decay=self.epsilon_decay,
+                               epsilon_min=self.epsilon_min,
+                               noise_variance=noise_variance)
 
     def _select_random_a(self):
         """
