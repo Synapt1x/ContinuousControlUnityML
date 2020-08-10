@@ -17,7 +17,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from control.noise_process import OrnsteinUhlenbeck
 from control.agents.agent import MainAgent
 from control.torch_models.actor_net import ActorNetwork
 from control.torch_models.critic_net import CriticNetwork
@@ -37,8 +36,23 @@ class DDPGAgent(MainAgent):
         self.theta = kwargs.get('theta', 0.15)
         self.sigma = kwargs.get('sigma', 0.20)
         self.dt = kwargs.get('dt', 0.005)
-        self.noise = OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
-                                       sigma=self.sigma)
+        self.use_ornstein = kwargs.get('use_ornstein', True)
+        if self.use_ornstein:
+            from control.noise_processes.noise_process import OrnsteinUhlenbeck
+            self.noise = OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
+                                           sigma=self.sigma)
+        else:
+            from control.noise_processes.normal_noise import NormalNoise
+
+            epsilon = kwargs.get('epsilon', 1.0)
+            epsilon_decay = kwargs.get('epsilon_decay', 0.99)
+            epsilon_min = kwargs.get('epsilon_min', 0.01)
+            noise_variance = kwargs.get('noise_variance', 0.3)
+
+            self.noise = NormalNoise(epsilon=epsilon,
+                                     epsilon_decay=epsilon_decay,
+                                     epsilon_min=epsilon_min,
+                                     noise_variance=noise_variance)
 
         # initialize as in base model
         super(DDPGAgent, self).__init__(state_size, action_size,
@@ -99,7 +113,10 @@ class DDPGAgent(MainAgent):
         """
         self.actor.eval()
         with torch.no_grad():
-            action_vals = self.actor(states.to(self.device)) + self.get_noise()
+            noise_vals = torch.stack(
+                [self.get_noise() for _ in range(self.action_size)]
+            )
+            action_vals = self.actor(states.to(self.device)) + noise_vals
             action_vals = torch.clamp(action_vals, -1, 1)
         self.actor.train()
 
@@ -199,7 +216,6 @@ class DDPGAgent(MainAgent):
 
             self.step()
 
-
     def step(self):
         """
         Update state of the agent and take a step through the learning process
@@ -212,3 +228,6 @@ class DDPGAgent(MainAgent):
         # update critic target network
         self.critic_target = utils.copy_weights(self.critic, self.critic_target,
                                                 self.tau)
+
+        # update scaling for noise
+        self.noise.step()
