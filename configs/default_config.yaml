@@ -24,10 +24,16 @@ model_params:
   tau: 0.001
 
   # parameters for the Ornstein-Uhlenbeck noise process
-  theta: 0.15
-  sigma: 0.2
+  use_ornstein: False
+  theta: 0.35
+  sigma: 0.5
   mu: 0.0
-  dt: 0.0001
+  dt: 0.001
+  # general noise (NOT applied if using Ornstein-Uhlenbeck)
+  epsilon: 1.0
+  epsilon_decay: 0.99
+  epsilon_min: 0.01
+  noise_variance: 0.3
 
   # parameters for the replay buffer
   buffer_size: 1000000

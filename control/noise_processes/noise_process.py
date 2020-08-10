@@ -79,6 +79,12 @@ class OrnsteinUhlenbeck():
 
         return y
 
+    def step(self):
+        """
+        Update any time-step parameters.
+        """
+        pass
+
 
 if __name__ == '__main__':
 
