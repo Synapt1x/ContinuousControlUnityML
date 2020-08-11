@@ -32,14 +32,15 @@ class ControlMain:
     """
 
     def __init__(self, file_path, alg, graph_file, model_params,
-                 frame_time=0.075, max_episodes=1E5, max_iterations=1E5):
+                 frame_time=0.075, max_episodes=1E5, max_iterations=1E5,
+                 t_update=20, num_updates=10):
         self.frame_time = frame_time
         self.max_iterations = max_iterations
         self.max_episodes = max_episodes
         self.graph_file = graph_file
 
         self.env, self.brain_name, self.brain = self._init_env(file_path)
-        self.agent = self._init_agent(alg, model_params)
+        self.agent = self._init_agent(alg, model_params, t_update, num_updates)
 
         self.score_store = []
         self.average_scores = []
@@ -55,7 +56,7 @@ class ControlMain:
 
         return env, brain_name, first_brain
 
-    def _init_agent(self, alg, model_params):
+    def _init_agent(self, alg, model_params, t_update, num_updates):
         """
         Initialize the custom model utilized by the agent.
         """
@@ -69,17 +70,20 @@ class ControlMain:
             # init DDPG
             from control.agents.ddpg_agent import DDPGAgent
             return DDPGAgent(**model_params, state_size=state_size,
-                             action_size=action_size, num_instances=num_agents)
+                             action_size=action_size, num_instances=num_agents,
+                             t_update=t_update, num_updates=num_updates)
         elif alg.lower() == 'd4pg':
             # init D4PG
             from control.agents.d4pg_agent import D4PGAgent
             return D4PGAgent(**model_params, state_size=state_size,
-                             action_size=action_size, num_instances=num_agents)
+                             action_size=action_size, num_instances=num_agents,
+                             t_update=t_update, num_updates=num_updates)
         else:
             # default to random
             from control.agents.agent import MainAgent
             return MainAgent(**model_params, state_size=state_size,
-                            action_size=action_size, num_instances=num_agents)
+                             action_size=action_size, num_instances=num_agents,
+                             t_update=t_update, num_updates=num_updates)
 
     def _update_scores(self, scores):
         """
