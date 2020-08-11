@@ -57,3 +57,28 @@ class NormalNoise():
         """
         update_val = self.epsilon * self.epsilon_decay
         self.epsilon = np.max([update_val, self.epsilon_min])
+
+
+if __name__ == '__main__':
+
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import pyplot as plt
+
+
+    print('Testing Normal process noise and saving to '
+          'test_normal.png')
+
+    t_end = 1
+    t_start = 0
+    n = 1000
+    t = np.linspace(t_start, t_end, n)
+    y = []
+
+    noise = NormalNoise(epsilon_decay=0.995, noise_variance=0.5)
+    for i in range(n):
+        y.append(noise.sample())
+        noise.step()
+
+    plt.plot(t, y)
+    plt.savefig('test_normal.png')
