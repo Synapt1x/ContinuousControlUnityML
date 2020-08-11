@@ -61,7 +61,7 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
-        return np.random.randn() * np.sqrt(self.dt)
+        return np.random.randn()  # * np.sqrt(self.dt)
 
     def sample(self):
         """
@@ -74,7 +74,8 @@ class OrnsteinUhlenbeck():
             where
             dY_t = theta * (mu - Y_t) * dt + sigma * d W_t
         """
-        y = self.y + self.uhlenbeck_mu() * self.dt + self.sigma * self.dw()
+        #y = self.y + self.uhlenbeck_mu() * self.dt + self.sigma * self.dw()
+        y = self.y + self.uhlenbeck_mu() + self.sigma * self.dw()
         self.y = y
 
         return y
@@ -88,14 +89,18 @@ class OrnsteinUhlenbeck():
 
 if __name__ == '__main__':
 
+
+    import matplotlib
+    matplotlib.use('Agg')
     from matplotlib import pyplot as plt
+
 
     print('Testing Ornstein-Uhlenbeck process noise and saving to '
           'test_uhlenbeck.png')
 
     t_end = 1
     t_start = 0
-    n = 10000
+    n = 1000
     dt = (t_end - t_start ) / n
     t = np.linspace(t_end, t_start, n)
     y = []

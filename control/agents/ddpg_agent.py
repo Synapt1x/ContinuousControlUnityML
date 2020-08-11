@@ -156,13 +156,10 @@ class DDPGAgent(MainAgent):
         target_vals = rewards + self.gamma * critic_targets.squeeze(1) * done_v
         critic_vals = self.critic(states, actions)
 
-        loss = F.mse_loss(target_vals, critic_vals)
+        loss = F.mse_loss(critic_vals, target_vals)
 
         # then compute loss for actor
-        self.actor.eval()
-        with torch.no_grad():
-            cur_actor_actions = self.actor(states)
-        self.actor.train()
+        cur_actor_actions = self.actor(states)
         policy_loss = self.critic(states, cur_actor_actions)
         policy_loss = -policy_loss.mean()
 
@@ -174,6 +171,7 @@ class DDPGAgent(MainAgent):
         self.critic.train()
         self.critic_optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
         self.critic_optimizer.step()
 
     def train_actor(self, policy_loss):
@@ -195,8 +193,9 @@ class DDPGAgent(MainAgent):
         actions: np.array/torch.Tensor
             Array or Tensor singleton or batch containing actions taken
         next_states: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing information about what
-            state followed actions taken from the states provided by 'state'
+            Array or Tensor singleton or batch containing information about
+            what state followed actions taken from the states provided by
+            'state'
         rewards: np.array/torch.Tensor
             Array or Tensor singleton or batch containing reward information
         dones: np.array/torch.Tensor
@@ -205,16 +204,27 @@ class DDPGAgent(MainAgent):
         """
         self.memory.store_tuple(states, actions, next_states, rewards, dones)
 
-        if len(self.memory) > self.memory.batch_size:
-            s, a, s_p, r, d = self.memory.sample()
+        update_time_step = (self.t + 1) % self.t_update == 0
+        sufficient_tuples = len(self.memory) > self.memory.batch_size
 
-            loss, policy_loss = self.compute_loss(s, a, s_p, r, d)
+        # learn from stored tuples if enough experience and t is an update step
+        if update_time_step and sufficient_tuples:
+            for _ in range(self.num_updates):
+                s, a, s_p, r, d = self.memory.sample()
 
-            # train the critic and actor separately
-            self.train_critic(loss)
-            self.train_actor(policy_loss)
+                loss, policy_loss = self.compute_loss(s, a, s_p, r, d)
 
-            self.step()
+                # train the critic and actor separately
+                self.train_critic(loss)
+                self.train_actor(policy_loss)
+
+                self.step()
+
+            # update scaling for noise
+            self.noise.step()
+
+        # update time step counter
+        self.t += 1
 
     def step(self):
         """
@@ -226,8 +236,6 @@ class DDPGAgent(MainAgent):
                                                self.tau)
 
         # update critic target network
-        self.critic_target = utils.copy_weights(self.critic, self.critic_target,
+        self.critic_target = utils.copy_weights(self.critic,
+                                                self.critic_target,
                                                 self.tau)
-
-        # update scaling for noise
-        self.noise.step()

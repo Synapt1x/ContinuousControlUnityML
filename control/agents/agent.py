@@ -60,6 +60,11 @@ class MainAgent:
         self.buffer_size = kwargs.get('buffer_size', 1E6)
         self.batch_size = kwargs.get('batch_size', 32)
 
+        # initialize time step and update step parameters
+        self.t = 0
+        self.t_update = kwargs.get('t_update', 20)
+        self.num_updates = kwargs.get('num_updates', 10)
+
         self._init_alg()
 
     def _init_alg(self):
