@@ -13,14 +13,14 @@ alg: 'ddpg'
 frame_time: 0.00
 max_episodes: 500
 max_iterations: 10000
-t_update: 20  # number of time steps to take before update
-num_updates: 10  # number of network updates to complete in a time step
+t_update: 10  # number of time steps to take before update
+num_updates: 20  # number of network updates to complete in a time step
 
 # model parameters
 model_params:
   # training parameters
   gamma: 0.99
-  actor_alpha: 0.0001
+  actor_alpha: 0.001
   critic_alpha: 0.001
   t_freq: 100
   tau: 0.001
@@ -33,7 +33,7 @@ model_params:
   dt: 0.001
   # general noise (NOT applied if using Ornstein-Uhlenbeck)
   epsilon: 1.0
-  epsilon_decay: 0.999
+  epsilon_decay: 0.99925
   epsilon_min: 0.01
   noise_variance: 0.5
 
@@ -42,5 +42,5 @@ model_params:
   batch_size: 64
 
   # architecture
-  inter_dims: [128, 256, 256, 512, 512, 1024]
+  inter_dims: [128, 256, 256, 512, 512]
   use_batch_norm: True
