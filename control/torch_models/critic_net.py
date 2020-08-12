@@ -51,21 +51,17 @@ class CriticNetwork(nn.Module):
             self.state_batch = nn.BatchNorm1d(self.state_size)
             self.input_batch = nn.BatchNorm1d(self.inter_dims[0])
 
-        hidden_layers = []
-        batch_norms = []
+        self.action_layer = nn.Linear(self.inter_dims[0] + self.action_size,
+                                      self.inter_dims[1])
 
-        for dim_i, hidden_dim in enumerate(self.inter_dims[1:-1]):
-            prev_dim = self.inter_dims[dim_i]
+        hidden_layers = []
+
+        for dim_i, hidden_dim in enumerate(self.inter_dims[2:]):
+            prev_dim = self.inter_dims[dim_i + 1]
             hidden_layers.append(nn.Linear(prev_dim, hidden_dim))
-            if self.use_batch_norm:
-                batch_norms.append(nn.BatchNorm1d(hidden_dim))
 
         self.hidden_layers = nn.ModuleList(hidden_layers)
-        if self.use_batch_norm:
-            self.hidden_batch_norms = nn.ModuleList(batch_norms)
 
-        self.action_layer = nn.Linear(self.inter_dims[-2] + self.action_size,
-                                      self.inter_dims[-1])
         self.output = nn.Linear(self.inter_dims[-1], 1)
 
     def _init_weights(self):
@@ -93,19 +89,15 @@ class CriticNetwork(nn.Module):
         if self.use_batch_norm:
             data_x = self.state_batch(state.float())
             data_x = self.input_batch(torch.relu(self.input(data_x)))
-
-            for layer, batch_norm in zip(self.hidden_layers,
-                                         self.hidden_batch_norms):
-                data_x = batch_norm(torch.relu(layer(data_x)))
-                data_x = torch.relu(layer(data_x))
         else:
             data_x = torch.relu(self.input(state.float()))
 
-            for layer in self.hidden_layers:
-                data_x = torch.relu(layer(data_x))
-
         data_x = torch.cat([data_x, action], dim=1)
         data_x = torch.relu(self.action_layer(data_x))
+
+        for layer in self.hidden_layers:
+            data_x = torch.relu(layer(data_x))
+
         value_est = self.output(data_x)
 
         return value_est
