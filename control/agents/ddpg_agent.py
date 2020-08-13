@@ -54,6 +54,9 @@ class DDPGAgent(MainAgent):
                                      epsilon_min=epsilon_min,
                                      noise_variance=noise_variance)
 
+        self.losses = []
+        self.policy_losses = []
+
         # initialize as in base model
         super(DDPGAgent, self).__init__(state_size, action_size,
                                         num_instances, seed, **kwargs)
@@ -207,8 +210,11 @@ class DDPGAgent(MainAgent):
         update_time_step = (self.t + 1) % self.t_update == 0
         sufficient_tuples = len(self.memory) > self.memory.batch_size
 
+
         # learn from stored tuples if enough experience and t is an update step
         if update_time_step and sufficient_tuples:
+            losses = []
+            policy_losses = []
             for _ in range(self.num_updates):
                 s, a, s_p, r, d = self.memory.sample()
 
@@ -218,10 +224,16 @@ class DDPGAgent(MainAgent):
                 self.train_critic(loss)
                 self.train_actor(policy_loss)
 
+                losses.append(loss.item())
+                policy_losses.append(policy_loss.item())
+
                 self.step()
 
             # update scaling for noise
             self.noise.step()
+
+            self.losses.append(np.mean(losses))
+            self.policy_losses.append(np.mean(policy_losses))
 
         # update time step counter
         self.t += 1
