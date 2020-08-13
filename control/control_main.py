@@ -259,9 +259,6 @@ class ControlMain:
             while episode < self.max_episodes:
                 scores = self.run_episode(train_mode=train_mode)
 
-                print('Average loss : ', np.mean(self.agent.losses))
-                print('Average policy loss : ', np.mean(self.agent.policy_losses))
-
                 self._update_scores(scores)
 
                 print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
