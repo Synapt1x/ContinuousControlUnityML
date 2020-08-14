@@ -48,7 +48,6 @@ class ActorNetwork(nn.Module):
         self.input = nn.Linear(self.state_size, self.inter_dims[0])
 
         if self.use_batch_norm:
-            self.state_batch = nn.BatchNorm1d(self.state_size)
             self.input_batch = nn.BatchNorm1d(self.inter_dims[0])
 
         hidden_layers = []
@@ -88,8 +87,7 @@ class ActorNetwork(nn.Module):
             Tensor containing output action values determined by the network.
         """
         if self.use_batch_norm:
-            data_x = self.state_batch(state.float())
-            data_x = self.input_batch(torch.relu(self.input(data_x)))
+            data_x = self.input_batch(torch.relu(self.input(state.float())))
 
             for layer, batch_norm in zip(self.hidden_layers,
                                          self.hidden_batch_norms):

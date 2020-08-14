@@ -48,7 +48,6 @@ class CriticNetwork(nn.Module):
         self.input = nn.Linear(self.state_size, self.inter_dims[0])
 
         if self.use_batch_norm:
-            self.state_batch = nn.BatchNorm1d(self.state_size)
             self.input_batch = nn.BatchNorm1d(self.inter_dims[0])
 
         self.action_layer = nn.Linear(self.inter_dims[0] + self.action_size,
@@ -87,8 +86,7 @@ class CriticNetwork(nn.Module):
             Tensor containing output action values determined by the network.
         """
         if self.use_batch_norm:
-            data_x = self.state_batch(state.float())
-            data_x = self.input_batch(torch.relu(self.input(data_x)))
+            data_x = self.input_batch(torch.relu(self.input(state.float())))
         else:
             data_x = torch.relu(self.input(state.float()))
 
