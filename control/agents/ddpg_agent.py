@@ -151,10 +151,13 @@ class DDPGAgent(MainAgent):
         """
         self.actor.eval()
         with torch.no_grad():
-            noise_vals = torch.stack(
-                [self.get_noise() for _ in range(self.action_size)]
-            )
-            action_vals = self.actor(states.to(self.device)) + noise_vals
+            if in_train:
+                noise_vals = torch.stack(
+                    [self.get_noise() for _ in range(self.action_size)]
+                )
+                action_vals = self.actor(states.to(self.device)) + noise_vals
+            else:
+                action_vals = self.actor(states.to(self.device))
             action_vals = torch.clamp(action_vals, -1, 1)
         self.actor.train()
 
