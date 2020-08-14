@@ -19,16 +19,16 @@ num_updates: 10  # number of network updates to complete in a time step
 # model parameters
 model_params:
   # training parameters
-  gamma: 0.9
-  actor_alpha: 0.00001
-  critic_alpha: 0.0001
+  gamma: 0.95
+  actor_alpha: 0.000001
+  critic_alpha: 0.000001
   t_freq: 100
-  tau: 0.0001
+  tau: 0.001
 
   # parameters for the Ornstein-Uhlenbeck noise process
   use_ornstein: True
-  theta: 0.2
-  sigma: 0.3
+  theta: 0.4
+  sigma: 0.5
   mu: 0.0
   dt: 0.01
   # general noise
@@ -42,5 +42,5 @@ model_params:
   batch_size: 64
 
   # architecture
-  inter_dims: [256, 256, 512, 512, 1024]
+  inter_dims: [512, 1024, 1024, 2048]
   use_batch_norm: True
