@@ -105,6 +105,8 @@ class ControlMain:
         file_name: str
             File name to which the agent will be saved for future use.
         """
+        model_dir = os.path.dirname(file_name)
+        os.makedirs(model_dir, exist_ok=True)
         self.agent.save_model(file_name)
 
     def load_model(self, file_name):
