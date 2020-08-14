@@ -88,3 +88,53 @@ def copy_weights(network, target_network, tau=1.0):
         t_param.data.copy_(update_p + target_p)
 
     return target_network
+
+
+def extract_model_names(main_file):
+    """
+    Extract the final names of files to which model weights will be saved.
+
+    Parameters
+    ----------
+    main_file:
+        The base file name for the output model files.
+    """
+    file_split = main_file.split('.')[:-1]
+    actor_name = ''.join(file_split + ['-actor.pkl'])
+    actor_t_name = ''.join(file_split + ['-actor-target.pkl'])
+
+    critic_name = ''.join(file_split + ['-critic.pkl'])
+    critic_t_name = ''.join(file_split + ['-critic-target.pkl'])
+
+    return actor_name, actor_t_name, critic_name, critic_t_name
+
+
+def save_model(model, file_name):
+    """
+    Save the provided model to the provided file_name.
+
+    Parameters
+    ----------
+    file_name: str
+        File name to which the agent will be saved for future use.
+    """
+    torch.save(model.state_dict(), file_name)
+
+
+def load_model(model, file_name, device):
+    """
+    Load the parameters for the specified model.
+
+    Parameters
+    ----------
+    file_name: str
+        File name from which the agent will be loaded.
+    """
+    if device.type == 'cpu':
+        model.load_state_dict(torch.load(file_name,
+                                         map_location=device.type))
+    else:
+        model.load_state_dict(torch.load(file_name))
+    model.eval()
+
+    return model

@@ -87,6 +87,42 @@ class DDPGAgent(MainAgent):
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
                                    seed=self.seed)
 
+    def save_model(self, main_file):
+        """
+        Save the agent's underlying model(s).
+
+        Parameters
+        ----------
+        file_name: str
+            File name to which the agent will be saved for future use.
+        """
+        actor, actor_t, critic, critic_t = utils.extract_model_names(main_file)
+
+        utils.save_model(self.actor, actor)
+        utils.save_model(self.actor_target, actor_t)
+
+        utils.save_model(self.critic, critic)
+        utils.save_model(self.critic_target, critic_t)
+
+    def load_model(self, main_file):
+        """
+        Load the agent's underlying model(s).
+
+        Parameters
+        ----------
+        file_name: str
+            File name from which the agent will be loaded.
+        """
+        actor, actor_t, critic, critic_t = utils.extract_model_names(main_file)
+
+        self.actor = utils.load_model(self.actor, actor, self.device)
+        self.actor_target = utils.load_model(self.actor_target, actor_t,
+                                             self.device)
+
+        self.critic = utils.load_model(self.critic, critic, self.device)
+        self.critic_target = utils.load_model(self.critic_target, critic_t,
+                                              self.device)
+
     def get_noise(self):
         """
         Sample noise to introduce randomness into the action selection process.
