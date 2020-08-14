@@ -52,11 +52,11 @@ class D4PGAgent(MainAgent):
         for _ in range(self.num_instances):
             actor = ActorNetwork(self.state_size, self.action_size)
             target_actor = ActorNetwork(self.state_size, self.action_size)
-            target_actor.load_state_dict(actor.state_dict())
+            target_actor = utils.copy_weights(actor)
 
             critic = CriticNetwork(self.state_size, self.action_size)
             target_critic = CriticNetwork(self.state_size, self.action_size)
-            target_critic.load_state_dict(critic.state_dict())
+            target_critic = utils.copy_weights(critic)
 
             self.actors.append(actor)
             self.actor_targets.append(target_actor)
@@ -131,9 +131,46 @@ class D4PGAgent(MainAgent):
         torch.float32
             Loss value (with grad) based on target and Q-value estimates.
         """
+        # compute target and critic values for TD loss
+        next_actor_actions = self.actor_target(next_states)
+        critic_targets = self.critic_target(next_states, next_actor_actions)
 
-        #TODO: Implement learning for final algorithm
-        return None
+        # get distribution Z_w for critic targets
+        z_w = torch.softmax(critic_targets)
+
+        # compute loss for critic
+        done_v = 1 - dones
+        target_vals = rewards + self.gamma * z_w.squeeze(1) * done_v
+        critic_vals = self.critic(states, actions)
+
+        # get distribution Z for critic
+        z = torch.softmax(critic_vals)
+
+        loss = F.mse_loss(critic_vals, target_vals)
+
+        # then compute loss for actor
+        cur_actor_actions = self.actor(states)
+        policy_loss = self.critic(states, cur_actor_actions)
+        policy_loss = -policy_loss.mean()
+
+        return loss, policy_loss
+
+    def train_critic(self, loss):
+        """
+        """
+        self.critic.train()
+        self.critic_optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        self.critic_optimizer.step()
+
+    def train_actor(self, policy_loss):
+        """
+        """
+        self.actor.train()
+        self.actor_optimizer.zero_grad()
+        policy_loss.backward()
+        self.actor_optimizer.step()
 
     def learn(self, states, actions, next_states, rewards, dones):
         """
@@ -146,21 +183,49 @@ class D4PGAgent(MainAgent):
         actions: np.array/torch.Tensor
             Array or Tensor singleton or batch containing actions taken
         next_states: np.array/torch.Tensor
-            Array or Tensor singleton or batch containing information about what
-            state followed actions taken from the states provided by 'state'
+            Array or Tensor singleton or batch containing information about
+            what state followed actions taken from the states provided by
+            'state'
         rewards: np.array/torch.Tensor
             Array or Tensor singleton or batch containing reward information
         dones: np.array/torch.Tensor
             Array or Tensor singleton or batch representing whether or not the
             episode ended after actions were taken
         """
-        #TODO: Implement training for algorithm
-        return None
+        self.memory.store_tuple(states, actions, next_states, rewards, dones)
+
+        update_time_step = (self.t + 1) % self.t_update == 0
+        sufficient_tuples = len(self.memory) > self.memory.batch_size
+
+        # learn from stored tuples if enough experience and t is an update step
+        if update_time_step and sufficient_tuples:
+            for _ in range(self.num_updates):
+                s, a, s_p, r, d = self.memory.sample()
+
+                loss, policy_loss = self.compute_loss(s, a, s_p, r, d)
+
+                # train the critic and actor separately
+                self.train_critic(loss)
+                self.train_actor(policy_loss)
+
+                self.step()
+
+            # update scaling for noise
+            self.noise.step()
+
+        # update time step counter
+        self.t += 1
 
     def step(self):
         """
         Update state of the agent and take a step through the learning process
         to reflect experiences have been acquired and/or learned from.
         """
-        #TODO: Implement update step for algorithm
-        return None
+        # update actor target network
+        self.actor_target = utils.copy_weights(self.actor, self.actor_target,
+                                               self.tau)
+
+        # update critic target network
+        self.critic_target = utils.copy_weights(self.critic,
+                                                self.critic_target,
+                                                self.tau)
