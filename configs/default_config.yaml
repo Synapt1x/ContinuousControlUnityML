@@ -13,15 +13,15 @@ alg: 'ddpg'
 frame_time: 0.00
 max_episodes: 500
 max_iterations: 10000
-t_update: 10  # number of time steps to take before update
-num_updates: 20  # number of network updates to complete in a time step
+t_update: 20  # number of time steps to take before update
+num_updates: 10  # number of network updates to complete in a time step
 
 # model parameters
 model_params:
   # training parameters
-  gamma: 0.99
-  actor_alpha: 0.0001
-  critic_alpha: 0.001
+  gamma: 0.9
+  actor_alpha: 0.00001
+  critic_alpha: 0.0001
   t_freq: 100
   tau: 0.0001
 
