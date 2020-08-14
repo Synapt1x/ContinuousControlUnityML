@@ -31,9 +31,9 @@ model_params:
   sigma: 0.3
   mu: 0.0
   dt: 0.01
-  # general noise (NOT applied if using Ornstein-Uhlenbeck)
+  # general noise
   epsilon: 1.0
-  epsilon_decay: 0.999999
+  epsilon_decay: 0.99999
   epsilon_min: 0.01
   noise_variance: 0.5
 
