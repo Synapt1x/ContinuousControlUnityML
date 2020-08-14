@@ -23,24 +23,24 @@ model_params:
   actor_alpha: 0.00001
   critic_alpha: 0.000001
   t_freq: 100
-  tau: 0.0005
+  tau: 0.0001
 
   # parameters for the Ornstein-Uhlenbeck noise process
-  use_ornstein: False
-  theta: 0.15
-  sigma: 0.2
+  use_ornstein: True
+  theta: 0.075
+  sigma: 0.1
   mu: 0.0
-  dt: 0.001
+  dt: 0.01
   # general noise (NOT applied if using Ornstein-Uhlenbeck)
   epsilon: 1.0
-  epsilon_decay: 0.999
+  epsilon_decay: 0.999999
   epsilon_min: 0.01
-  noise_variance: 0.6
+  noise_variance: 0.5
 
   # parameters for the replay buffer
   buffer_size: 1000000
   batch_size: 64
 
   # architecture
-  inter_dims: [128, 256, 256, 512, 512]
+  inter_dims: [256, 256, 512, 512, 1024]
   use_batch_norm: True
