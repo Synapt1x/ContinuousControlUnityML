@@ -37,6 +37,10 @@ class DDPGAgent(MainAgent):
         self.sigma = kwargs.get('sigma', 0.20)
         self.dt = kwargs.get('dt', 0.005)
         self.use_ornstein = kwargs.get('use_ornstein', True)
+        self.epsilon = kwargs.get('epsilon', 1.0)
+        self.epsilon_decay = kwargs.get('epsilon_decay', 0.99)
+        self.epsilon_min = kwargs.get('epsilon_min', 0.01)
+
         if self.use_ornstein:
             from control.noise_processes.noise_process import OrnsteinUhlenbeck
             self.noise = OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
@@ -44,14 +48,11 @@ class DDPGAgent(MainAgent):
         else:
             from control.noise_processes.normal_noise import NormalNoise
 
-            epsilon = kwargs.get('epsilon', 1.0)
-            epsilon_decay = kwargs.get('epsilon_decay', 0.99)
-            epsilon_min = kwargs.get('epsilon_min', 0.01)
             noise_variance = kwargs.get('noise_variance', 0.3)
 
-            self.noise = NormalNoise(epsilon=epsilon,
-                                     epsilon_decay=epsilon_decay,
-                                     epsilon_min=epsilon_min,
+            self.noise = NormalNoise(epsilon=self.epsilon,
+                                     epsilon_decay=self.epsilon_decay,
+                                     epsilon_min=self.epsilon_min,
                                      noise_variance=noise_variance)
 
         # initialize as in base model
@@ -93,7 +94,7 @@ class DDPGAgent(MainAgent):
         noise_vals = np.array(self.noise.sample())
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
-        return noise_vals
+        return noise_vals * self.epsilon
 
     def get_action(self, states, in_train=True):
         """
@@ -157,7 +158,7 @@ class DDPGAgent(MainAgent):
         target_vals = rewards + self.gamma * critic_targets.squeeze(1) * done_v
         critic_vals = self.critic(states, actions)
 
-        loss = F.mse_loss(critic_vals, target_vals)
+        loss = F.mse_loss(target_vals, critic_vals)
 
         # then compute loss for actor
         cur_actor_actions = self.actor(states)
@@ -240,3 +241,7 @@ class DDPGAgent(MainAgent):
         self.critic_target = utils.copy_weights(self.critic,
                                                 self.critic_target,
                                                 self.tau)
+
+        # decay epsilon for random noise
+        self.epsilon = np.max([self.epsilon * self.epsilon_decay,
+                               self.epsilon_min])
