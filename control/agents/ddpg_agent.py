@@ -226,6 +226,10 @@ class DDPGAgent(MainAgent):
 
         # learn from stored tuples if enough experience and t is an update step
         if update_time_step and sufficient_tuples:
+
+            critic_losses = []
+            actor_losses = []
+
             for _ in range(self.num_updates):
                 s, a, s_p, r, d = self.memory.sample()
 
@@ -235,10 +239,13 @@ class DDPGAgent(MainAgent):
                 self.train_critic(loss)
                 self.train_actor(policy_loss)
 
-                self.step()
+                critic_losses.append(loss.item())
+                actor_losses.append(policy_loss.item())
 
-            # update scaling for noise
-            self.noise.step()
+            self.critic_loss_avgs.append(np.mean(critic_losses))
+            self.actor_loss_avgs.append(np.mean(actor_losses))
+
+            self.step()
 
         # update time step counter
         self.t += 1
