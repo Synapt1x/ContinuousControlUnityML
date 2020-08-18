@@ -13,6 +13,7 @@ import datetime
 
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
 
 
 def eval_state(curr_env_info):
@@ -138,3 +139,26 @@ def load_model(model, file_name, device):
     model.eval()
 
     return model
+
+
+def plot_loss(loss_data, plot_file, label, title):
+    """
+    Plot a curve of the loss over training.
+    """
+    # plot and save the plot file
+    fig = plt.figure(figsize=(12, 8))
+
+    plt.plot(loss_data, linewidth=2, label=label)
+    plt.title(title, fontsize=20)
+
+    plt.xlabel('Episode', fontsize=16)
+    plt.ylabel('Average Loss', fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+
+    plt.xlim([0, len(loss_data)])
+    plt.ylim([0, np.max(loss_data)])
+
+    plt.savefig(plot_file)
+
+    print(f'Loss plot saved to {plot_file}')

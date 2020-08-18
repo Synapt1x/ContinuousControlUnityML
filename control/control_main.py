@@ -185,11 +185,42 @@ class ControlMain:
         else:
             print('Not enough average scores computed. Skipping plotting.')
 
+    def save_loss_plots(self):
+        """
+        Plot and save figures for training loss for both critic and actor
+        losses.
+
+        Parameters
+        ----------
+        first_solved: int
+            Episode number at which the agent solved the continuous control
+            problem by achieving an average score of +30.
+        """
+        num_eval = len(self.agent.critic_loss_avgs)
+
+        if num_eval > 100:
+            # Set up plot file and directory names
+            out_dir, cur_date = utils.get_output_dir()
+            critic_plot_file = os.path.join(
+                out_dir, self.graph_file.replace(
+                    '.png', f'-critic-loss-date-{cur_date}.png'))
+            actor_plot_file = os.path.join(
+                out_dir, self.graph_file.replace(
+                    '.png', f'-actor-loss-date-{cur_date}.png'))
+
+            utils.plot_loss(self.agent.critic_loss_avgs, critic_plot_file,
+                            label='critic loss',
+                            title='Average Episode Critic Loss During Training')
+            utils.plot_loss(self.agent.actor_loss_avgs, actor_plot_file,
+                            label='actor loss',
+                            title='Average Episode Actor Loss During Training')
+        else:
+            print('Not enough loss values computed. Skipping plotting.')
+
     def save_results(self):
         """
         Save training averages over time.
         """
-        #TODO: Needs to be updated slightly for new results
         num_eval = len(self.average_scores)
 
         if num_eval > 100:
@@ -297,6 +328,7 @@ class ControlMain:
                 if first_solved > 0:
                     print(f'*** SOLVED IN {first_solved} EPISODES ***')
                 self.save_training_plot(first_solved)
+                self.save_loss_plots()
                 self.save_results()
 
             self.env.close()
