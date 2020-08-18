@@ -44,6 +44,8 @@ class ControlMain:
         self.agent = self._init_agent(alg, model_params, t_update, num_updates)
 
         self.score_store = []
+        self.critic_loss_store = []
+        self.actor_loss_store = []
         self.average_scores = []
         self.solved_score = 30
 
@@ -102,6 +104,22 @@ class ControlMain:
         # also store average over last 100 episodes over agent average
         score_avg = np.mean(self.score_store[-100:])
         self.average_scores.append(score_avg)
+
+    def _store_losses(self, time_diff):
+        """
+        Print out and store scores from losses.
+        """
+        avg_critic_loss = np.mean(self.agent.critic_loss_avgs)
+        avg_actor_loss = np.mean(self.agent.actor_loss_avgs)
+
+        self.critic_loss_store.append(avg_critic_loss)
+        self.actor_loss_store.append(avg_actor_loss)
+
+        if self.verbose:
+            print(f'* Time taken : {time_diff} s')
+            print(f'--- Critic Loss : {avg_critic_loss}')
+            print(f'--- Actor Loss : {avg_actor_loss}')
+            print(f'--- epsilon : {self.agent.epsilon}')
 
     def save_model(self, file_name):
         """
@@ -196,7 +214,7 @@ class ControlMain:
             Episode number at which the agent solved the continuous control
             problem by achieving an average score of +30.
         """
-        num_eval = len(self.agent.critic_loss_avgs)
+        num_eval = len(self.critic_loss_store)
 
         if num_eval > 100:
             # Set up plot file and directory names
@@ -208,10 +226,10 @@ class ControlMain:
                 out_dir, self.graph_file.replace(
                     '.png', f'-actor-loss-date-{cur_date}.png'))
 
-            utils.plot_loss(self.agent.critic_loss_avgs, critic_plot_file,
+            utils.plot_loss(self.critic_loss_store, critic_plot_file,
                             label='critic loss',
                             title='Average Episode Critic Loss During Training')
-            utils.plot_loss(self.agent.actor_loss_avgs, actor_plot_file,
+            utils.plot_loss(self.actor_loss_store, actor_plot_file,
                             label='actor loss',
                             title='Average Episode Actor Loss During Training')
         else:
@@ -308,14 +326,7 @@ class ControlMain:
                 self._update_scores(scores)
 
                 print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
-                if self.verbose:
-                    print(f'* Time taken : {end_t - start_t} s')
-                    avg_critic_loss = np.mean(self.agent.critic_loss_avgs)
-                    avg_actor_loss = np.mean(self.agent.actor_loss_avgs)
-
-                    print(f'--- Critic Loss : {avg_critic_loss}')
-                    print(f'--- Actor Loss : {avg_actor_loss}')
-                    print(f'--- epsilon : {self.agent.epsilon}')
+                self._store_losses(end_t - start_t)
 
                 episode += 1
 
