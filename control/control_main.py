@@ -33,11 +33,12 @@ class ControlMain:
 
     def __init__(self, file_path, alg, graph_file, model_params,
                  frame_time=0.075, max_episodes=1E5, max_iterations=1E5,
-                 t_update=20, num_updates=10):
+                 t_update=20, num_updates=10, verbose=False):
         self.frame_time = frame_time
         self.max_iterations = max_iterations
         self.max_episodes = max_episodes
         self.graph_file = graph_file
+        self.verbose = verbose
 
         self.env, self.brain_name, self.brain = self._init_env(file_path)
         self.agent = self._init_agent(alg, model_params, t_update, num_updates)
@@ -78,6 +79,12 @@ class ControlMain:
             return D4PGAgent(**model_params, state_size=state_size,
                              action_size=action_size, num_instances=num_agents,
                              t_update=t_update, num_updates=num_updates)
+        elif alg.lower() == 'ppo':
+            # init PPO
+            from control.agents.ppo_agent import PPOAgent
+            return PPOAgent(**model_params, state_size=state_size,
+                            action_size=action_size, num_instances=num_agents,
+                            t_update=t_update, num_updates=num_updates)
         else:
             # default to random
             from control.agents.agent import MainAgent
@@ -223,7 +230,7 @@ class ControlMain:
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
             actions = self.agent.get_action(utils.to_tensor(states),
-                                            in_train=train_mode)
+                                            in_train=False)
             np_actions = actions.cpu().numpy()
             env_info = self.env.step(np_actions)[self.brain_name]
             next_states, rewards, dones = utils.eval_state(env_info)
@@ -261,12 +268,23 @@ class ControlMain:
             # run episodes
             if not train_mode:
                 self.max_episodes = np.max([100, self.max_episodes])
+                self.agent.epsilon = self.epsilon_min
             while episode < self.max_episodes:
+                start_t = time.time()
                 scores = self.run_episode(train_mode=train_mode)
+                end_t = time.time()
 
                 self._update_scores(scores)
 
                 print(f'* Episode {episode} completed * avg: {np.mean(scores)} *')
+                if self.verbose:
+                    print(f'* Time taken : {end_t - start_t} s')
+                    avg_critic_loss = np.mean(self.agent.critic_loss_avgs)
+                    avg_actor_loss = np.mean(self.agent.actor_loss_avgs)
+
+                    print(f'--- Critic Loss : {avg_critic_loss}')
+                    print(f'--- Actor Loss : {avg_actor_loss}')
+                    print(f'--- epsilon : {self.agent.epsilon}')
 
                 episode += 1
 

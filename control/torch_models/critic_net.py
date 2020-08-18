@@ -70,7 +70,7 @@ class CriticNetwork(nn.Module):
             layer.weight.data.uniform_(-b, b)
         self.output.weight.data.uniform_(-3e-3, 3e-3)
 
-    def forward(self, state, action):
+    def forward(self, state, action=None):
         """
         Define the forward-pass for data through the model.
 
@@ -90,7 +90,8 @@ class CriticNetwork(nn.Module):
         else:
             data_x = torch.relu(self.input(state.float()))
 
-        data_x = torch.cat([data_x, action], dim=1)
+        if action is not None:
+            data_x = torch.cat([data_x, action], dim=1)
         data_x = torch.relu(self.action_layer(data_x))
 
         for layer in self.hidden_layers:
