@@ -32,9 +32,13 @@ def parse_args():
 
     # command-line arguments
     arg_parser.add_argument('-t', '--train', action='store_true',
-                            default=False)
+                            default=False,
+                            help='Flag to indicate whether to train or not')
     arg_parser.add_argument('-c', '--config', dest='config_file',
                             type=str, default=DEFAULT_CONFIG)
+    arg_parser.add_argument('-v', '--verbose', action='store_true',
+                            default=False,
+                            help='Verbose flag for printing out progress')
     args = vars(arg_parser.parse_args())
 
     return args
@@ -62,11 +66,12 @@ def parse_config(config_data):
     return config_data, model_file, model_params
 
 
-def main(model_file, model_params, train, config_data):
+def main(model_file, model_params, train, config_data, verbose):
     """
     Main runner for the code CLI.
     """
-    control_prob = ControlMain(model_params=model_params, **config_data)
+    control_prob = ControlMain(model_params=model_params, **config_data,
+                               verbose=verbose)
 
     if train:
         control_prob.train_agent()
@@ -82,8 +87,9 @@ if __name__ == '__main__':
 
     train_on = args.get('train', False)
     config_file = args.get('config_file', DEFAULT_CONFIG)
+    verbose = args.get('verbose', False)
     config_args = load_config(config_file)
     config_data, model_file, model_params = parse_config(config_args)
 
     # run the model with the provided parameters
-    main(model_file, model_params, train_on, config_data)
+    main(model_file, model_params, train_on, config_data, verbose)
