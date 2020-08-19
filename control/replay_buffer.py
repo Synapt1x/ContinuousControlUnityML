@@ -76,8 +76,8 @@ class ReplayBuffer:
         if len(self.memory) == self.buffer_size:
             num_agents = state.shape[0]
             self.memory = self.memory[num_agents:]
-        for s, a, r, next_s, d in zip(state, action, next_state, reward, done):
-            self.memory.append((s, a, r, next_s, d))
+        for s, a, next_s, r, d in zip(state, action, next_state, reward, done):
+            self.memory.append((s, a, next_s, r, d))
 
     def sample(self):
         """
