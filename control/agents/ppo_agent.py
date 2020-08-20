@@ -20,7 +20,7 @@ from torch.autograd import Variable
 from control.agents.agent import MainAgent
 from control.torch_models.actor_net import ActorNetwork
 from control.torch_models.critic_net import CriticNetwork
-from control.replay_buffer import ReplayBuffer
+from control.trajectory_store import TrajectoryStore
 from torch.distributions import MultivariateNormal
 from control import utils
 
@@ -39,6 +39,7 @@ class PPOAgent(MainAgent):
         self.num_updates = kwargs.get('num_updates', 10)
         self.t_update = kwargs.get('t_update', 5)
         self.noise = None
+        self.t = 0
 
         # initialize as in base model
         super(PPOAgent, self).__init__(state_size, action_size,
@@ -66,9 +67,8 @@ class PPOAgent(MainAgent):
                                            lr=self.critic_alpha)
 
         # trajectory storage
-        self.trajectories = ReplayBuffer(buffer_size=self.t_update,
-                                         batch_size=self.batch_size,
-                                         seed=self.seed)
+        self.trajectories = TrajectoryStore(self.num_instances, self.t_update,
+                                            self.state_size, self.action_size)
 
     def compute_discounted_rewards(self, rewards):
         """
@@ -256,34 +256,44 @@ class PPOAgent(MainAgent):
             episode ended after actions were taken
         """
         self.trajectories.store_tuple(states, actions, next_states,
-                                      rewards, dones)
+                                      rewards, dones, self.t)
 
-        if len(self.trajectories) == self.t_update:
-            update_dataset = self.trajectories.get_dataset(self.t_update)
+        if self.t == self.t_update - 1:
+            update_dataset = self.trajectories.get_dataset()
 
             critic_losses = []
             actor_losses = []
 
             for epoch in range(self.num_updates):
-                for batch_i, (s, a, s_n, r, d) in enumerate(update_dataset):
-                    advantages, critic_loss = self.compute_advantages(
-                        s, a, s_n, r, d)
+                for batch_i, exp_tuples in enumerate(update_dataset):
+                    all_s, all_a, all_s_n, all_r, all_d = exp_tuples
+                    for agent in range(self.num_instances):
+                        s = all_s[:, agent, :]
+                        a = all_a[:, agent, :]
+                        s_n = all_s_n[:, agent, :]
+                        r = all_r[:, agent]
+                        d = all_d[:, agent]
 
-                    prev_logs, action_logs = self.get_logs(s, a)
-                    loss = self.clipped_surrogate(advantages, action_logs,
-                                                  prev_logs)
+                        advantages, critic_loss = self.compute_advantages(
+                            s, a, s_n, r, d)
 
-                    self.update_policy(loss)
-                    self.update_value(critic_loss)
+                        prev_logs, action_logs = self.get_logs(s, a)
+                        loss = self.clipped_surrogate(advantages, action_logs,
+                                                    prev_logs)
 
-                    critic_losses.append(critic_loss.item())
-                    actor_losses.append(loss.item())
+                        self.update_policy(loss)
+                        self.update_value(critic_loss)
+
+                        critic_losses.append(critic_loss.item())
+                        actor_losses.append(loss.item())
 
             self.critic_loss_avgs.append(np.mean(critic_losses))
             self.actor_loss_avgs.append(np.mean(actor_losses))
 
             self.step()
             self.trajectories.empty()
+
+        self.t += 1
 
     def step(self):
         """
@@ -296,3 +306,5 @@ class PPOAgent(MainAgent):
         # decay epsilon for random noise
         self.epsilon = np.max([self.epsilon * self.epsilon_decay,
                                self.epsilon_min])
+
+        self.t = -1
