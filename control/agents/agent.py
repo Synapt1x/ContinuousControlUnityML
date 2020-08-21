@@ -73,7 +73,6 @@ class MainAgent:
         # initialize parameters for Ornstein
         self.theta = kwargs.get('theta', 0.15)
         self.sigma = kwargs.get('sigma', 0.20)
-        self.dt = kwargs.get('dt', 0.005)
         noise_variance = kwargs.get('noise_variance', 0.3)
 
         self._init_alg()
@@ -92,8 +91,7 @@ class MainAgent:
         if self.use_ornstein:
             from control.noise_processes.noise_process import OrnsteinUhlenbeck
 
-            return OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
-                                     sigma=self.sigma,
+            return OrnsteinUhlenbeck(theta=self.theta, sigma=self.sigma,
                                      action_size=self.action_size)
         else:
             from control.noise_processes.normal_noise import NormalNoise

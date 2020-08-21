@@ -28,18 +28,16 @@ class OrnsteinUhlenbeck():
     This code specifically samples from the process using the Euler-Maruyama
     method for sampling by discretizing as:
 
-    dY_t = theta * (mu - Y_t) * dt + sigma * d W_t
+    dY_t = theta * (mu - Y_t) + sigma * d W_t
 
     using base Wiener noise W_t (Gaussian noise with time-bound decay).
     """
 
-    def __init__(self, dt=0.01, theta=0.15, mu=0.0, sigma=0.2, action_size=4,
+    def __init__(self, theta=0.15, mu=0.0, sigma=0.2, action_size=4,
                  seed=13):
         self.theta = theta
         self.mu = mu * np.ones(action_size)
         self.sigma = sigma
-        self.dt = dt
-        self.action_size = action_size
         self.seed = seed
 
         # seed only on construction not every reset
@@ -63,7 +61,7 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
-        return np.random.randn()
+        return np.random.random()
 
     def sample(self):
         """
@@ -74,7 +72,7 @@ class OrnsteinUhlenbeck():
         This essentially computes:
             Y_t+1 = Y_t + dY_t
             where
-            dY_t = theta * (mu - Y_t) * dt + sigma * d W_t
+            dY_t = theta * (mu - Y_t) + sigma * d W_t
         """
         y = self.y + self.uhlenbeck_mu() + self.sigma * self.dw()
         self.y = y
@@ -89,7 +87,6 @@ class OrnsteinUhlenbeck():
 
 
 if __name__ == '__main__':
-
 
     import matplotlib
     matplotlib.use('Agg')
