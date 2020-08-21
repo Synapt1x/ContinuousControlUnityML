@@ -93,7 +93,8 @@ class MainAgent:
             from control.noise_processes.noise_process import OrnsteinUhlenbeck
 
             return OrnsteinUhlenbeck(dt=self.dt, theta=self.theta,
-                                     sigma=self.sigma)
+                                     sigma=self.sigma,
+                                     action_size=self.action_size)
         else:
             from control.noise_processes.normal_noise import NormalNoise
 

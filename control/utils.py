@@ -162,3 +162,5 @@ def plot_loss(loss_data, plot_file, label, title):
     plt.savefig(plot_file)
 
     print(f'Loss plot saved to {plot_file}')
+
+    plt.close()

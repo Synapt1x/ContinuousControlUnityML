@@ -19,8 +19,10 @@ class NormalNoise():
     """
 
     def __init__(self, epsilon=1.0, epsilon_decay=0.99, epsilon_min=0.01,
-                 noise_variance=0.3, seed=13):
+                 noise_variance=0.3, action_size=4, seed=13):
         self.original_epsilon = epsilon
+
+        self.action_size = action_size
 
         # set decay parameters
         self.epsilon = epsilon
@@ -46,7 +48,7 @@ class NormalNoise():
         """
         Sample a random number and multiply by epsilon to scale noise.
         """
-        noise_val = np.random.randn() * self.noise_variance
+        noise_val = np.random.randn(self.action_size) * self.noise_variance
         scaled_val = noise_val * self.epsilon
 
         return scaled_val
