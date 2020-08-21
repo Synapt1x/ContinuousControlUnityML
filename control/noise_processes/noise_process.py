@@ -38,6 +38,7 @@ class OrnsteinUhlenbeck():
         self.theta = theta
         self.mu = mu * np.ones(action_size)
         self.sigma = sigma
+        self.action_size = action_size
         self.seed = seed
 
         # seed only on construction not every reset
@@ -49,7 +50,7 @@ class OrnsteinUhlenbeck():
         """
         Initialize or reset the Ornstein-Uhlenbeck process.
         """
-        self.y = 0.0
+        self.y = self.mu
 
     def uhlenbeck_mu(self):
         """
@@ -61,7 +62,7 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
-        return np.random.random()
+        return np.random.random(self.action_size)
 
     def sample(self):
         """

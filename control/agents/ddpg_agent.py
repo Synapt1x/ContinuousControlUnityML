@@ -261,10 +261,10 @@ class DDPGAgent(MainAgent):
                 critic_losses.append(loss.item())
                 actor_losses.append(policy_loss.item())
 
+                self.step()
+
             self.critic_loss_avgs.append(np.mean(critic_losses))
             self.actor_loss_avgs.append(np.mean(actor_losses))
-
-            self.step()
 
         # update time step counter
         self.t += 1
