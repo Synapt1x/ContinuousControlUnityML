@@ -6,31 +6,30 @@ graph_file: 'training-performance.png'
 
 ###########################################################################
 # valid values include 'random', 'ddpg'
-alg: 'ppo'
+alg: 'ddpg'
 ###########################################################################
 
 # parameters for printing and controlling learning time
 frame_time: 0.00
-max_episodes: 200
+max_episodes: 1500
 max_iterations: 10000
 t_update: 10  # number of time steps to take before update
-num_updates: 10  # number of network updates to complete in a time step
+num_updates: 5 # number of network updates to complete in a time step
 
 # model parameters
 model_params:
   # training parameters
   gamma: 0.99
-  actor_alpha: 0.00001
+  actor_alpha: 0.0001
   critic_alpha: 0.00001
   t_freq: 100
   tau: 0.001
 
   # parameters for the Ornstein-Uhlenbeck noise process
-  use_ornstein: False
-  theta: 0.4
-  sigma: 0.5
+  use_ornstein: True
+  theta: 0.15
+  sigma: 0.2
   mu: 0.0
-  dt: 0.01
   # general noise
   epsilon: 1.0
   epsilon_decay: 0.9999
@@ -42,9 +41,9 @@ model_params:
   batch_size: 64
 
   # architecture
-  inter_dims: [256, 512, 1024]
+  inter_dims: [256, 512]
   use_batch_norm: True
 
   # parameters specific to PPO
   eps_clip: 0.05
-  variance_decay: 0.999
+  variance_decay: 0.9995
