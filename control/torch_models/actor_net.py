@@ -69,7 +69,7 @@ class ActorNetwork(nn.Module):
             layer_size = self.inter_dims[layer_num]
             b = compute_bound(layer_size)
             layer.weight.data.uniform_(-b, b)
-        self.output.weight.data.uniform_(-3e-3, 3e-3)
+        self.output.weight.data.uniform_(-3e-5, 3e-5)
 
     def forward(self, state):
         """

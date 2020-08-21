@@ -1,39 +1,39 @@
 # general parameters
-file_path: 'envs/Reacher_Linux_Single_NoVis/Reacher.x86_64'
-#file_path: 'envs/Reacher_Single.app'
+file_path: 'envs/Reacher_Linux_Multi_NoVis/Reacher.x86_64'
+# file_path: 'envs/Reacher_Single.app'
 model_file: 'models/first_ddpg.pkl'
 graph_file: 'training-performance.png'
 
 ###########################################################################
 # valid values include 'random', 'ddpg'
-alg: 'ddpg'
+alg: 'ppo'
 ###########################################################################
 
 # parameters for printing and controlling learning time
 frame_time: 0.00
-max_episodes: 500
+max_episodes: 200
 max_iterations: 10000
-t_update: 20  # number of time steps to take before update
+t_update: 10  # number of time steps to take before update
 num_updates: 10  # number of network updates to complete in a time step
 
 # model parameters
 model_params:
   # training parameters
-  gamma: 0.95
-  actor_alpha: 0.000001
-  critic_alpha: 0.000001
+  gamma: 0.99
+  actor_alpha: 0.00001
+  critic_alpha: 0.00001
   t_freq: 100
   tau: 0.001
 
   # parameters for the Ornstein-Uhlenbeck noise process
-  use_ornstein: True
+  use_ornstein: False
   theta: 0.4
   sigma: 0.5
   mu: 0.0
   dt: 0.01
   # general noise
   epsilon: 1.0
-  epsilon_decay: 0.99999
+  epsilon_decay: 0.9999
   epsilon_min: 0.01
   noise_variance: 0.5
 
@@ -42,5 +42,9 @@ model_params:
   batch_size: 64
 
   # architecture
-  inter_dims: [512, 1024, 1024, 2048]
+  inter_dims: [256, 512, 1024]
   use_batch_norm: True
+
+  # parameters specific to PPO
+  eps_clip: 0.05
+  variance_decay: 0.999

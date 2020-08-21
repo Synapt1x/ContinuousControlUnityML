@@ -34,10 +34,10 @@ class PPOAgent(MainAgent):
     def __init__(self, state_size, action_size, num_instances=1, seed=13,
                  **kwargs):
         # first add additional parameters specific to PPO
-        self.kl_beta = kwargs.get('kl_beta', 0.01)
-        self.eps_clip = kwargs.get('eps_clip', 0.01)
+        self.eps_clip = kwargs.get('eps_clip', 0.05)
         self.num_updates = kwargs.get('num_updates', 10)
         self.t_update = kwargs.get('t_update', 5)
+        self.variance_decay = kwargs.get('variance_decay', 0.99)
         self.noise = None
         self.t = 0
 
@@ -45,10 +45,8 @@ class PPOAgent(MainAgent):
         super(PPOAgent, self).__init__(state_size, action_size,
                                        num_instances, seed, **kwargs)
 
-        action_variance = kwargs.get('action_variance', 0.25)
-        variance_array = np.array([action_variance] * self.action_size)
-        self.action_variances = torch.diag(
-            torch.from_numpy(variance_array)).float().to(self.device)
+        self.action_variance = kwargs.get('action_variance', 0.25)
+        self.action_variances = self.set_action_variances(multiplier=1.0)
 
     def _init_alg(self):
         """
@@ -70,6 +68,35 @@ class PPOAgent(MainAgent):
         self.trajectories = TrajectoryStore(self.num_instances, self.t_update,
                                             self.state_size, self.action_size)
 
+    def get_status(self, verbose, time_diff):
+        """
+        Get the current state of the agent as it's training.
+        """
+        avg_critic_loss = np.mean(self.critic_loss_avgs)
+        avg_actor_loss = np.mean(self.actor_loss_avgs)
+
+        if verbose:
+            print('----------------------------------')
+            print(f'* Time taken : {time_diff} s')
+            print(f'--- Critic Loss : {avg_critic_loss}')
+            print(f'--- Actor Loss : {avg_actor_loss}')
+            print(f'--- epsilon : {self.epsilon}')
+            print(f'--- action var : {self.action_variance}')
+            print('----------------------------------')
+
+        return avg_critic_loss, avg_actor_loss
+
+    def set_action_variances(self, multiplier=1.0):
+        """
+        Set the value for the action variance to use when sampling actions from
+        the stochastic policy maintained by PPO.
+        """
+        self.action_variance = self.action_variance * multiplier
+        variance_array = np.array([self.action_variance] * self.action_size)
+
+        return torch.diag(
+            torch.from_numpy(variance_array)).float().to(self.device)
+
     def compute_discounted_rewards(self, rewards):
         """
         Compute discounted rewards for a set of sequential rewards.
@@ -77,14 +104,14 @@ class PPOAgent(MainAgent):
         discounts = torch.tensor(
             np.array([self.gamma ** i for i in range(self.t_update)]),
             requires_grad=True).float().to(self.device)
-        discounted_rewards = (discounts * rewards).float().to(self.device)
 
         indices = torch.LongTensor(np.linspace(self.t_update - 1, 0,
                                                self.t_update)).to(self.device)
-        reversed_rewards = discounted_rewards.index_select(0,
-                                                        indices)
+        reversed_rewards = rewards.index_select(0, indices)
         final_rewards = torch.cumsum(reversed_rewards, 0)
-        forward_discounts = final_rewards.index_select(0, indices)
+        discounted_rewards = (discounts * final_rewards).float().to(self.device)
+
+        forward_discounts = discounted_rewards.index_select(0, indices)
 
         return forward_discounts
 
@@ -279,7 +306,7 @@ class PPOAgent(MainAgent):
 
                         prev_logs, action_logs = self.get_logs(s, a)
                         loss = self.clipped_surrogate(advantages, action_logs,
-                                                    prev_logs)
+                                                      prev_logs)
 
                         self.update_policy(loss)
                         self.update_value(critic_loss)
@@ -306,5 +333,8 @@ class PPOAgent(MainAgent):
         # decay epsilon for random noise
         self.epsilon = np.max([self.epsilon * self.epsilon_decay,
                                self.epsilon_min])
+
+        # update action variance to choose more selectively
+        self.action_variances = self.set_action_variances(self.variance_decay)
 
         self.t = -1

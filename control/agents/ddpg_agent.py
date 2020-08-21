@@ -68,6 +68,23 @@ class DDPGAgent(MainAgent):
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size,
                                    seed=self.seed)
 
+    def get_status(self, verbose, time_diff):
+        """
+        Get the current state of the agent as it's training.
+        """
+        avg_critic_loss = np.mean(self.critic_loss_avgs)
+        avg_actor_loss = np.mean(self.actor_loss_avgs)
+
+        if verbose:
+            print('----------------------------------')
+            print(f'* Time taken : {time_diff} s')
+            print(f'--- Critic Loss : {avg_critic_loss}')
+            print(f'--- Actor Loss : {avg_actor_loss}')
+            print(f'--- epsilon : {self.epsilon}')
+            print('----------------------------------')
+
+        return avg_critic_loss, avg_actor_loss
+
     def save_model(self, main_file):
         """
         Save the agent's underlying model(s).
