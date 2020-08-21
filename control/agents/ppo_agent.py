@@ -142,7 +142,7 @@ class PPOAgent(MainAgent):
         noise_vals = np.array(self.noise.sample())
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
-        return noise_vals * self.epsilon
+        return noise_vals
 
     def get_action(self, states, in_train=True):
         """
@@ -164,9 +164,7 @@ class PPOAgent(MainAgent):
         distribution = self.get_action_distribution(states, in_train)
         actions = distribution.sample().to(self.device)
 
-        noise_vals = torch.stack(
-                [self.get_noise() for _ in range(self.action_size)]
-        )
+        noise_vals = torch.stack(self.get_noise())
         action = actions + noise_vals
         actions = torch.clamp(actions, -1, 1)
 

@@ -33,11 +33,13 @@ class OrnsteinUhlenbeck():
     using base Wiener noise W_t (Gaussian noise with time-bound decay).
     """
 
-    def __init__(self, dt=0.01, theta=0.15, mu=0.0, sigma=0.2, seed=13):
+    def __init__(self, dt=0.01, theta=0.15, mu=0.0, sigma=0.2, action_size=4,
+                 seed=13):
         self.theta = theta
-        self.mu = mu
+        self.mu = mu * np.ones(action_size)
         self.sigma = sigma
         self.dt = dt
+        self.action_size = action_size
         self.seed = seed
 
         # seed only on construction not every reset
@@ -61,7 +63,7 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
-        return np.random.randn() * np.sqrt(self.dt)
+        return np.random.randn()
 
     def sample(self):
         """
@@ -74,7 +76,7 @@ class OrnsteinUhlenbeck():
             where
             dY_t = theta * (mu - Y_t) * dt + sigma * d W_t
         """
-        y = self.y + self.uhlenbeck_mu() * self.dt + self.sigma * self.dw()
+        y = self.y + self.uhlenbeck_mu() + self.sigma * self.dw()
         self.y = y
 
         return y
