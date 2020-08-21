@@ -109,17 +109,11 @@ class ControlMain:
         """
         Print out and store scores from losses.
         """
-        avg_critic_loss = np.mean(self.agent.critic_loss_avgs)
-        avg_actor_loss = np.mean(self.agent.actor_loss_avgs)
+        avg_critic_loss, avg_actor_loss = self.agent.get_status(self.verbose,
+                                                                time_diff)
 
         self.critic_loss_store.append(avg_critic_loss)
         self.actor_loss_store.append(avg_actor_loss)
-
-        if self.verbose:
-            print(f'* Time taken : {time_diff} s')
-            print(f'--- Critic Loss : {avg_critic_loss}')
-            print(f'--- Actor Loss : {avg_actor_loss}')
-            print(f'--- epsilon : {self.agent.epsilon}')
 
     def save_model(self, file_name):
         """
