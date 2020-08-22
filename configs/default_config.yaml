@@ -20,7 +20,7 @@ num_updates: 5 # number of network updates to complete in a time step
 model_params:
   # training parameters
   gamma: 0.99
-  actor_alpha: 0.0001
+  actor_alpha: 0.00001
   critic_alpha: 0.00001
   t_freq: 100
   tau: 0.001
@@ -42,7 +42,7 @@ model_params:
 
   # architecture
   inter_dims: [256, 512]
-  use_batch_norm: True
+  use_batch_norm: False
 
   # parameters specific to PPO
   eps_clip: 0.05
