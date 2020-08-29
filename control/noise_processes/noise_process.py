@@ -37,7 +37,7 @@ class OrnsteinUhlenbeck():
                  seed=13):
         self.theta = theta
         self.mu = mu * np.ones(action_size)
-        self.sigma = sigma
+        self.orig_sigma = sigma
         self.action_size = action_size
         self.seed = seed
 
@@ -50,6 +50,7 @@ class OrnsteinUhlenbeck():
         """
         Initialize or reset the Ornstein-Uhlenbeck process.
         """
+        self.sigma = self.orig_sigma
         self.y = self.mu
 
     def uhlenbeck_mu(self):
@@ -84,7 +85,7 @@ class OrnsteinUhlenbeck():
         """
         Update any time-step parameters.
         """
-        pass
+        self.sigma = self.sigma * 0.998
 
 
 if __name__ == '__main__':
@@ -105,9 +106,10 @@ if __name__ == '__main__':
     t = np.linspace(t_start, t_end, n)
     y = []
 
-    uo = OrnsteinUhlenbeck(theta=0.1, sigma=0.2)
+    uo = OrnsteinUhlenbeck(theta=0.2, sigma=0.325)
     for i in range(n):
         y.append(uo.sample())
+        uo.step()
 
     y_arr = np.stack(y)
 
