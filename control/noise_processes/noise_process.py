@@ -62,7 +62,7 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
-        return np.random.random(self.action_size)
+        return np.random.randn(self.action_size)
 
     def sample(self):
         """
@@ -99,15 +99,17 @@ if __name__ == '__main__':
 
     t_end = 1000
     t_start = 0
-    n = 4000
+    n = 1000
     dt = (t_end - t_start ) / n
     dt = 0.01
     t = np.linspace(t_start, t_end, n)
     y = []
 
-    uo = OrnsteinUhlenbeck(dt=dt)
+    uo = OrnsteinUhlenbeck(theta=0.1, sigma=0.2)
     for i in range(n):
         y.append(uo.sample())
 
-    plt.plot(t, y)
+    y_arr = np.stack(y)
+
+    plt.plot(y_arr)
     plt.savefig('test_uhlenbeck.png')
