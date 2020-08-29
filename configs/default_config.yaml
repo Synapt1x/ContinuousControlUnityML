@@ -42,7 +42,7 @@ model_params:
 
   # architecture
   inter_dims: [256, 512]
-  use_batch_norm: True
+  use_batch_norm: False
 
   # parameters specific to PPO
   eps_clip: 0.05

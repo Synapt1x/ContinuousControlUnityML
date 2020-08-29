@@ -37,7 +37,7 @@ class OrnsteinUhlenbeck():
                  seed=13):
         self.theta = theta
         self.mu = mu * np.ones(action_size)
-        self.sigma = sigma
+        self.orig_sigma = sigma
         self.action_size = action_size
         self.seed = seed
 
@@ -50,6 +50,7 @@ class OrnsteinUhlenbeck():
         """
         Initialize or reset the Ornstein-Uhlenbeck process.
         """
+        self.sigma = self.orig_sigma
         self.y = self.mu
 
     def uhlenbeck_mu(self):
@@ -62,7 +63,11 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
+<<<<<<< HEAD
         return np.random.random(self.action_size)
+=======
+        return np.random.randn(self.action_size)
+>>>>>>> baced762df18d66d6d5dcb055db4b2fc82ae544d
 
     def sample(self):
         """
@@ -84,7 +89,7 @@ class OrnsteinUhlenbeck():
         """
         Update any time-step parameters.
         """
-        pass
+        self.sigma = self.sigma * 0.998
 
 
 if __name__ == '__main__':
@@ -99,15 +104,18 @@ if __name__ == '__main__':
 
     t_end = 1000
     t_start = 0
-    n = 4000
+    n = 1000
     dt = (t_end - t_start ) / n
     dt = 0.01
     t = np.linspace(t_start, t_end, n)
     y = []
 
-    uo = OrnsteinUhlenbeck(dt=dt)
+    uo = OrnsteinUhlenbeck(theta=0.2, sigma=0.325)
     for i in range(n):
         y.append(uo.sample())
+        uo.step()
 
-    plt.plot(t, y)
+    y_arr = np.stack(y)
+
+    plt.plot(y_arr)
     plt.savefig('test_uhlenbeck.png')
