@@ -63,11 +63,7 @@ class OrnsteinUhlenbeck():
         """
         Sample the Wiener process noise grad d W_t.
         """
-<<<<<<< HEAD
-        return np.random.random(self.action_size)
-=======
         return np.random.randn(self.action_size)
->>>>>>> baced762df18d66d6d5dcb055db4b2fc82ae544d
 
     def sample(self):
         """
