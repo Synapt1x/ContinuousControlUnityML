@@ -64,6 +64,7 @@ class MainAgent:
         self.t = 0
         self.t_update = kwargs.get('t_update', 20)
         self.num_updates = kwargs.get('num_updates', 10)
+        self.tau = self.tau / self.num_updates
 
         # initialize random noise parameters
         self.use_ornstein = kwargs.get('use_ornstein', True)
@@ -179,3 +180,11 @@ class MainAgent:
         to reflect experiences have been acquired and/or learned from.
         """
         return None
+
+    def decay_epsilon(self):
+        """
+        Decay the agents epsilon for multiplying added action noise.
+        """
+        # decay epsilon for random noise
+        self.epsilon = np.max([self.epsilon * self.epsilon_decay,
+                               self.epsilon_min])

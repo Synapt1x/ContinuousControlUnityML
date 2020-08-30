@@ -127,8 +127,8 @@ class DDPGAgent(MainAgent):
         """
         noise_vals = np.zeros((self.num_instances, self.action_size))
         for agent in range(self.num_instances):
-            noise_vals[agent] = self.noise.sample()
-        self.noise.step()
+            noise_vals[agent] = self.noise.sample() * self.epsilon
+        #self.noise.step()
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
         return noise_vals
@@ -283,7 +283,3 @@ class DDPGAgent(MainAgent):
         self.critic_target = utils.copy_weights(self.critic,
                                                 self.critic_target,
                                                 self.tau)
-
-        # decay epsilon for random noise
-        self.epsilon = np.max([self.epsilon * self.epsilon_decay,
-                               self.epsilon_min])

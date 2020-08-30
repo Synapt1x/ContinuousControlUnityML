@@ -294,6 +294,9 @@ class ControlMain:
             # print average score as training progresses
             iteration += 1
 
+        # decay epsilon
+        self.agent.decay_epsilon()
+
         return scores
 
     def train_agent(self, train_mode=True):
