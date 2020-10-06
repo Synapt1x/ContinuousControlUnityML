@@ -13,7 +13,7 @@ alg: 'ddpg'
 frame_time: 0.00
 max_episodes: 2500
 max_iterations: 10000
-t_update: 10  # number of time steps to take before update
+t_update: 5 # number of time steps to take before update
 num_updates: 10 # number of network updates to complete in a time step
 
 # model parameters
@@ -27,12 +27,12 @@ model_params:
 
   # parameters for the Ornstein-Uhlenbeck noise process
   use_ornstein: True
-  theta: 0.3
-  sigma: 0.3
+  theta: 0.25
+  sigma: 0.25
   mu: 0.0
   # general noise
   epsilon: 1.0
-  epsilon_decay: 0.996
+  epsilon_decay: 0.99995
   epsilon_min: 0.01
   noise_variance: 0.5
 
@@ -41,7 +41,7 @@ model_params:
   batch_size: 256
 
   # architecture
-  inter_dims: [256, 512]
+  inter_dims: [256, 512, 512, 1024]
   use_batch_norm: False
 
   # parameters specific to PPO
