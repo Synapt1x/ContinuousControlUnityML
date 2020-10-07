@@ -32,7 +32,7 @@ model_params:
   mu: 0.0
   # general noise
   epsilon: 1.0
-  epsilon_decay: 0.99995
+  epsilon_decay: 0.9995
   epsilon_min: 0.01
   noise_variance: 0.5
 
@@ -42,7 +42,7 @@ model_params:
 
   # architecture
   inter_dims: [256, 512, 512, 1024]
-  use_batch_norm: False
+  use_batch_norm: True
 
   # parameters specific to PPO
   eps_clip: 0.05
