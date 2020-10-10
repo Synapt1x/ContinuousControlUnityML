@@ -46,15 +46,23 @@ class DDPGAgent(MainAgent):
         """
         # initialize the actor and critics separately
         self.actor = ActorNetwork(self.state_size, self.action_size,
-                                  self.inter_dims).to(self.device)
+                                  self.inter_dims,
+                                  use_batch_norm=self.use_batch_norm
+                                  ).to(self.device)
         self.actor_target = ActorNetwork(self.state_size, self.action_size,
-                                         self.inter_dims).to(self.device)
+                                         self.inter_dims,
+                                         use_batch_norm=self.use_batch_norm
+                                         ).to(self.device)
         self.actor_target = utils.copy_weights(self.actor, self.actor_target)
 
         self.critic = CriticNetwork(self.state_size, self.action_size,
-                                    self.inter_dims).to(self.device)
+                                    self.inter_dims,
+                                    use_batch_norm=self.use_batch_norm
+                                    ).to(self.device)
         self.critic_target = CriticNetwork(self.state_size, self.action_size,
-                                           self.inter_dims).to(self.device)
+                                           self.inter_dims,
+                                           use_batch_norm=self.use_batch_norm
+                                           ).to(self.device)
         self.critic_target = utils.copy_weights(self.critic, self.critic_target)
 
         # initializer optimizers
@@ -127,7 +135,7 @@ class DDPGAgent(MainAgent):
         """
         noise_vals = np.zeros((self.num_instances, self.action_size))
         for agent in range(self.num_instances):
-            noise_vals[agent] = self.noise.sample() * self.epsilon
+            noise_vals[agent] = self.noise.sample()  # * self.epsilon
         #self.noise.step()
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
