@@ -92,7 +92,6 @@ class ActorNetwork(nn.Module):
             for layer, batch_norm in zip(self.hidden_layers,
                                          self.hidden_batch_norms):
                 data_x = batch_norm(torch.relu(layer(data_x)))
-                data_x = torch.relu(layer(data_x))
         else:
             data_x = torch.relu(self.input(state.float()))
 

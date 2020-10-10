@@ -55,6 +55,7 @@ class MainAgent:
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
         self.inter_dims = kwargs.get('inter_dims', [64, 256])
+        self.use_batch_norm = kwargs.get('use_batch_norm', False)
 
         # extract parameters specific to replay buffer
         self.buffer_size = kwargs.get('buffer_size', 1E6)
