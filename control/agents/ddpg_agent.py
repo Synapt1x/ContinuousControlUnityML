@@ -56,12 +56,10 @@ class DDPGAgent(MainAgent):
         self.actor_target = utils.copy_weights(self.actor, self.actor_target)
 
         self.critic = CriticNetwork(self.state_size, self.action_size,
-                                    self.inter_dims,
-                                    use_batch_norm=self.use_batch_norm
+                                    self.inter_dims
                                     ).to(self.device)
         self.critic_target = CriticNetwork(self.state_size, self.action_size,
-                                           self.inter_dims,
-                                           use_batch_norm=self.use_batch_norm
+                                           self.inter_dims
                                            ).to(self.device)
         self.critic_target = utils.copy_weights(self.critic, self.critic_target)
 
@@ -160,8 +158,11 @@ class DDPGAgent(MainAgent):
         """
         self.actor.eval()
         with torch.no_grad():
-            noise_vals = self.get_noise()
-            action_vals = self.actor(states.to(self.device)) + noise_vals
+            if in_train:
+                noise_vals = self.get_noise()
+                action_vals = self.actor(states.to(self.device)) + noise_vals
+            else:
+                action_vals = self.actor(states.to(self.device))
             action_vals = torch.clamp(action_vals, -1, 1)
         self.actor.train()
 

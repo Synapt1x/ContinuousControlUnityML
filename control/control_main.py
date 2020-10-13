@@ -273,7 +273,7 @@ class ControlMain:
         while iteration < self.max_iterations:
             # first have the agent act and evaluate state
             actions = self.agent.get_action(utils.to_tensor(states),
-                                            in_train=False)
+                                            in_train=train_mode)
             np_actions = actions.cpu().numpy()
             env_info = self.env.step(np_actions)[self.brain_name]
             next_states, rewards, dones = utils.eval_state(env_info)
@@ -314,7 +314,7 @@ class ControlMain:
             # run episodes
             if not train_mode:
                 self.max_episodes = np.max([100, self.max_episodes])
-                self.agent.epsilon = self.epsilon_min
+                self.agent.epsilon = self.agent.epsilon_min
             while episode < self.max_episodes:
                 start_t = time.time()
                 scores = self.run_episode(train_mode=train_mode)
