@@ -164,7 +164,9 @@ class PPOAgent(MainAgent):
         distribution = self.get_action_distribution(states, in_train)
         actions = distribution.sample().to(self.device)
 
-        noise_vals = torch.stack(self.get_noise())
+        noise_vals = self.get_noise()
+        if isinstance(noise_vals, (list, np.ndarray)):
+            noise_vals = torch.stack(noise_vals)
         action = actions + noise_vals
         actions = torch.clamp(actions, -1, 1)
 

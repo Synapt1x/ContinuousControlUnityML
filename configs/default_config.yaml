@@ -6,7 +6,7 @@ graph_file: 'training-performance.png'
 
 ###########################################################################
 # valid values include 'random', 'ddpg'
-alg: 'ddpg'
+alg: 'ppo'
 ###########################################################################
 
 # parameters for printing and controlling learning time
