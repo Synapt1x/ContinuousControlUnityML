@@ -133,7 +133,7 @@ class DDPGAgent(MainAgent):
         """
         noise_vals = np.zeros((self.num_instances, self.action_size))
         for agent in range(self.num_instances):
-            noise_vals[agent] = self.noise.sample()  # * self.epsilon
+            noise_vals[agent] = self.noise.sample() * self.epsilon
         #self.noise.step()
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
