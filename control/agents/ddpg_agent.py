@@ -46,27 +46,27 @@ class DDPGAgent(MainAgent):
         """
         # initialize the actor and critics separately
         self.actor = ActorNetwork(self.state_size, self.action_size,
-                                  self.inter_dims,
+                                  self.actor_inter_dims,
                                   use_batch_norm=self.use_batch_norm
                                   ).to(self.device)
         self.actor_target = ActorNetwork(self.state_size, self.action_size,
-                                         self.inter_dims,
+                                         self.actor_inter_dims,
                                          use_batch_norm=self.use_batch_norm
                                          ).to(self.device)
         self.actor_target = utils.copy_weights(self.actor, self.actor_target)
 
         self.critic = CriticNetwork(self.state_size, self.action_size,
-                                    self.inter_dims
+                                    self.critic_inter_dims
                                     ).to(self.device)
         self.critic_target = CriticNetwork(self.state_size, self.action_size,
-                                           self.inter_dims
+                                           self.critic_inter_dims
                                            ).to(self.device)
         self.critic_target = utils.copy_weights(self.critic, self.critic_target)
 
         # initializer optimizers
-        self.actor_optimizer = optim.AdamW(self.actor.parameters(),
+        self.actor_optimizer = optim.Adam(self.actor.parameters(),
                                            lr=self.actor_alpha)
-        self.critic_optimizer = optim.AdamW(self.critic.parameters(),
+        self.critic_optimizer = optim.Adam(self.critic.parameters(),
                                             lr=self.critic_alpha,
                                             eps=1e-4)
 
@@ -133,8 +133,8 @@ class DDPGAgent(MainAgent):
         """
         noise_vals = np.zeros((self.num_instances, self.action_size))
         for agent in range(self.num_instances):
-            noise_vals[agent] = self.noise.sample() * self.epsilon
-        #self.noise.step()
+            noise_vals[agent] = self.noise.sample() #* self.epsilon
+        self.noise.step()
         noise_vals = torch.from_numpy(noise_vals).float().to(self.device)
 
         return noise_vals

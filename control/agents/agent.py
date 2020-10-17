@@ -54,7 +54,9 @@ class MainAgent:
         self.critic_alpha = kwargs.get('critic_alpha', 0.001)
         self.t_freq = kwargs.get('t_freq', 10)
         self.tau = kwargs.get('tau', 0.1)
-        self.inter_dims = kwargs.get('inter_dims', [64, 256])
+        self.actor_inter_dims = kwargs.get('actor_inter_dims', [256, 256])
+        self.critic_inter_dims = kwargs.get('critic_inter_dims',
+                                            [128, 256, 128])
         self.use_batch_norm = kwargs.get('use_batch_norm', False)
 
         # extract parameters specific to replay buffer
@@ -75,6 +77,7 @@ class MainAgent:
         # initialize parameters for Ornstein
         self.theta = kwargs.get('theta', 0.15)
         self.sigma = kwargs.get('sigma', 0.20)
+        self.decay = kwargs.get('decay', 0.9996)
         noise_variance = kwargs.get('noise_variance', 0.3)
 
         self._init_alg()
@@ -94,7 +97,8 @@ class MainAgent:
             from control.noise_processes.noise_process import OrnsteinUhlenbeck
 
             return OrnsteinUhlenbeck(theta=self.theta, sigma=self.sigma,
-                                     action_size=self.action_size)
+                                     action_size=self.action_size,
+                                     decay=self.decay)
         else:
             from control.noise_processes.normal_noise import NormalNoise
 

@@ -11,7 +11,7 @@ alg: 'ddpg'
 
 # parameters for printing and controlling learning time
 frame_time: 0.00
-max_episodes: 3000
+max_episodes: 2000
 max_iterations: 10000
 t_update: 1 # number of time steps to take before update
 num_updates: 2 # number of network updates to complete in a time step
@@ -20,8 +20,8 @@ num_updates: 2 # number of network updates to complete in a time step
 model_params:
   # training parameters
   gamma: 0.99
-  actor_alpha: 0.005
-  critic_alpha: 0.001
+  actor_alpha: 0.0001
+  critic_alpha: 0.0001
   t_freq: 100
   tau: 0.001
 
@@ -29,7 +29,8 @@ model_params:
   use_ornstein: True
   theta: 0.15
   sigma: 0.2
-  mu: 0.0
+  mu: 1.0
+  decay: 0.9996
   # general noise
   epsilon: 1.0
   epsilon_decay: 0.9999
@@ -41,7 +42,8 @@ model_params:
   batch_size: 128
 
   # architecture
-  inter_dims: [256, 512]
+  actor_inter_dims: [256, 256]
+  critic_inter_dims: [128, 256, 128]
   use_batch_norm: True
 
   # parameters specific to PPO
