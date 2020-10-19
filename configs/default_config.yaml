@@ -13,8 +13,8 @@ alg: 'ddpg'
 frame_time: 0.00
 max_episodes: 2000
 max_iterations: 10000
-t_update: 1 # number of time steps to take before update
-num_updates: 2 # number of network updates to complete in a time step
+t_update: 4 # number of time steps to take before update
+num_updates: 5 # number of network updates to complete in a time step
 
 # model parameters
 model_params:
@@ -44,7 +44,7 @@ model_params:
   # architecture
   actor_inter_dims: [256, 256]
   critic_inter_dims: [128, 256, 128]
-  use_batch_norm: True
+  use_batch_norm: False
 
   # parameters specific to PPO
   eps_clip: 0.05
