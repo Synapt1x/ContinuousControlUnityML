@@ -204,12 +204,16 @@ class DDPGAgent(MainAgent):
 
         loss = F.mse_loss(target_vals, critic_vals)
 
+        self.train_critic(loss)
+
         # then compute loss for actor
         cur_actor_actions = self.actor(states)
         policy_loss = self.critic(states, cur_actor_actions)
         policy_loss = -policy_loss.mean()
 
-        return loss, policy_loss
+        self.train_actor(policy_loss)
+
+        return loss.item(), policy_loss.item()
 
     def train_critic(self, loss):
         """
@@ -262,14 +266,10 @@ class DDPGAgent(MainAgent):
             for _ in range(self.num_updates):
                 s, a, s_p, r, d = self.memory.sample()
 
-                loss, policy_loss = self.compute_loss(s, a, s_p, r, d)
+                loss, policy_loss = self.train(s, a, s_p, r, d)
 
-                # train the critic and actor separately
-                self.train_critic(loss)
-                self.train_actor(policy_loss)
-
-                critic_losses.append(loss.item())
-                actor_losses.append(policy_loss.item())
+                critic_losses.append(loss)
+                actor_losses.append(policy_loss)
 
                 self.step()
 
