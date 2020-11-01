@@ -12,9 +12,9 @@ alg: 'ddpg'
 # parameters for printing and controlling learning time
 frame_time: 0.00
 max_episodes: 2000
-max_iterations: 10000
-t_update: 4 # number of time steps to take before update
-num_updates: 5 # number of network updates to complete in a time step
+max_iterations: 100000
+t_update: 1 # number of time steps to take before update
+num_updates: 1 # number of network updates to complete in a time step
 
 # model parameters
 model_params:

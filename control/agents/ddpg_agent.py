@@ -168,10 +168,11 @@ class DDPGAgent(MainAgent):
 
         return action_vals
 
-    def compute_loss(self, states, actions, next_states, rewards, dones):
+    def train(self, states, actions, next_states, rewards, dones):
         """
         Compute the loss based on the information provided and the value /
-        policy parameterizations used in the algorithm.
+        policy parameterizations used in the algorithm and provide losses
+        to train the critic and actor networks.
 
         Parameters
         ----------
