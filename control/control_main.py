@@ -241,8 +241,12 @@ class ControlMain:
             res_file = os.path.join(out_dir,
                                     f'results-file-{cur_date}.pkl')
 
+            results_dict = {'scores': self.average_scores,
+                            'critic_loss': self.critic_loss_store,
+                            'actor_loss': self.actor_loss_store}
+
             with open(res_file, 'wb') as o_file:
-                pickle.dump(self.average_scores, o_file)
+                pickle.dump(results_dict, o_file)
 
             print(f'Training results saved to {res_file}')
         else:

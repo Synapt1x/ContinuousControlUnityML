@@ -1,5 +1,5 @@
 # general parameters
-file_path: 'envs/Reacher_Linux_Single_NoVis/Reacher.x86_64'
+file_path: 'envs/Reacher_Linux_Multi_NoVis/Reacher.x86_64'
 # file_path: 'envs/Reacher_Single.app'
 model_file: 'models/first_ddpg.pkl'
 graph_file: 'training-performance.png'
@@ -11,10 +11,10 @@ alg: 'ddpg'
 
 # parameters for printing and controlling learning time
 frame_time: 0.00
-max_episodes: 2000
+max_episodes: 1000
 max_iterations: 100000
 t_update: 1 # number of time steps to take before update
-num_updates: 1 # number of network updates to complete in a time step
+num_updates: 5 # number of network updates to complete in a time step
 
 # model parameters
 model_params:
@@ -29,8 +29,8 @@ model_params:
   use_ornstein: True
   theta: 0.15
   sigma: 0.2
-  mu: 1.0
-  decay: 0.9996
+  mu: 0.0
+  decay: 1.0
   # general noise
   epsilon: 1.0
   epsilon_decay: 0.9999
@@ -42,7 +42,7 @@ model_params:
   batch_size: 128
 
   # architecture
-  actor_inter_dims: [256, 256]
+  actor_inter_dims: [128, 128]
   critic_inter_dims: [128, 256, 128]
   use_batch_norm: False
 
