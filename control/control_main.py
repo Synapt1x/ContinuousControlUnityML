@@ -151,7 +151,7 @@ class ControlMain:
         """
         num_eval = len(self.average_scores)
 
-        if num_eval > 100:
+        if num_eval > 10:
             # Set up plot file and directory names
             out_dir, cur_date = utils.get_output_dir()
             plot_file = os.path.join(
