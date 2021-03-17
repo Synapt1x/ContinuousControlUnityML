@@ -201,7 +201,7 @@ class DDPGAgent(MainAgent):
         # compute loss for critic
         done_v = 1 - dones
         target_vals = rewards + self.gamma * critic_targets.squeeze(1) * done_v
-        critic_vals = self.critic(states, actions)
+        critic_vals = self.critic(states, actions).squeeze(-1)
 
         loss = F.mse_loss(target_vals, critic_vals)
 
