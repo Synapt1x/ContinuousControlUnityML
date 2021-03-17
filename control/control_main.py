@@ -210,7 +210,7 @@ class ControlMain:
         """
         num_eval = len(self.critic_loss_store)
 
-        if num_eval > 100:
+        if num_eval > 10:
             # Set up plot file and directory names
             out_dir, cur_date = utils.get_output_dir()
             critic_plot_file = os.path.join(
@@ -235,7 +235,7 @@ class ControlMain:
         """
         num_eval = len(self.average_scores)
 
-        if num_eval > 100:
+        if num_eval > 10:
             # Save results
             out_dir, cur_date = utils.get_output_dir()
             res_file = os.path.join(out_dir,
