@@ -179,7 +179,7 @@ class ControlMain:
             # plot indicator for solved iteration
             if first_solved > 0:
                 min_val = np.min(self.average_scores)
-                plt.axhline(y=13, color='g', linewidth=1, linestyle='--')
+                plt.axhline(y=30, color='g', linewidth=1, linestyle='--')
                 ax = fig.gca()
 
                 ax.add_artist(Ellipse((first_solved, self.solved_score),
