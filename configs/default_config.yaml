@@ -44,7 +44,7 @@ model_params:
   # architecture
   actor_inter_dims: [128, 128]
   critic_inter_dims: [128, 256, 128]
-  use_batch_norm: False
+  use_batch_norm: True
 
   # parameters specific to PPO
   eps_clip: 0.05
