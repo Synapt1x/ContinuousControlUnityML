@@ -1,7 +1,7 @@
 # general parameters
-file_path: 'envs/Reacher_Linux_Single_NoVis/Reacher.x86_64'
+file_path: 'envs/Reacher_Linux_Multi_NoVis/Reacher.x86_64'
 # file_path: 'envs/Reacher_Single.app'
-model_file: 'models/first_ddpg.pkl'
+model_file: 'models/multi_ddpg.pkl'
 graph_file: 'training-performance.png'
 
 ###########################################################################
@@ -14,7 +14,7 @@ frame_time: 0.00
 max_episodes: 500
 max_iterations: 100000
 t_update: 1 # number of time steps to take before update
-num_updates: 5 # number of network updates to complete in a time step
+num_updates: 2 # number of network updates to complete in a time step
 
 # model parameters
 model_params:
@@ -44,7 +44,7 @@ model_params:
   # architecture
   actor_inter_dims: [128, 128]
   critic_inter_dims: [128, 256, 128]
-  use_batch_norm: True
+  use_batch_norm: False
 
   # parameters specific to PPO
   eps_clip: 0.05
