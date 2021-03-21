@@ -107,7 +107,7 @@ With these characteristics, the agent can learn how to maximize the amount of re
 
 \FloatBarrier
 
-Each episode lasts 10,0000 steps, which leads to a maximum possible episode score of +100 if the agent is contained within the target location for the entirety of the episode. For the purposes of this project, the environment is considered solved when a 100-episode average of +30 is reached.
+For the purposes of this project, the environment is considered solved when a 100-episode average of +30 is reached. That is, the average score over 100 concurrent episodes during training is above +30 reward from moving the arm appropriately.
 
 \section{Approach}
 
@@ -155,7 +155,7 @@ The former involves the following characteristics:
  		\textbf{hyperparameter} & \textbf{utility} & \textbf{value} \\
  		\hline
  		$\alpha$ & learning rate & $0.001$ \\
- 		$\tau$ & target network soft-update ratio & $0.001$ \\
+ 		$\tau$ & target network soft-update rate & $0.001$ \\
  		$\gamma$ & discount factor on future returns & $0.99$ \\
  		$t\ update$ & number of steps to take before updating networks & $1$ \\
  		$num\ updates$ & number of updates to complete each time networks are updated during training & $2$ \\
