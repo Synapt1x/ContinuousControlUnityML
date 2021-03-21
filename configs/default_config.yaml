@@ -1,11 +1,10 @@
 # general parameters
 file_path: 'envs/Reacher_Linux_Multi_NoVis/Reacher.x86_64'
-# file_path: 'envs/Reacher_Single.app'
 model_file: 'models/multi_ddpg.pkl'
 graph_file: 'training-performance.png'
 
 ###########################################################################
-# valid values include 'random', 'ddpg'
+# valid values include 'random', 'ddpg', 'd4pg', 'ppo'
 alg: 'ddpg'
 ###########################################################################
 
@@ -44,7 +43,7 @@ model_params:
   # architecture
   actor_inter_dims: [128, 128]
   critic_inter_dims: [128, 256, 128]
-  use_batch_norm: False
+  use_batch_norm: True
 
   # parameters specific to PPO
   eps_clip: 0.05
