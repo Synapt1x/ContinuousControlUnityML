@@ -21,13 +21,13 @@ The state in this environment is defined by 33 `float` values that represent con
 
 A demonstration of the environment on an agent that has not yet learned the task is as follows:
 
-![untrained-agent](https://media.giphy.com/media/Lm0QUUcGnYKUM42QMa/giphy.gif)
+![untrained-ddpg](https://media.giphy.com/media/U4MI9TJ2xJUgGM9EWz/giphy.gif)
 
 The white arms are each controlled by one of the 20 instances of an RL agent, which is tasked to learn how to apply torque to arm joints such that the arms hand (the blue blob) remains in the moving target location (green blob).
 
 Contrast this to an agent that has successfully learned how to apply torque to the arm joints such that they maximize the reward they receive from torque applications:
 
-![trained-agent](https://media.giphy.com/media/jZSubRXuEhYvQJglnC/giphy.gif)
+![trained-ddpg](https://media.giphy.com/media/UCQbGCsD5qQOyx59f1/giphy.gif)
 
 Given the amount of reward possible, the environment is considered solved when the agent is able to successfully
 move the arm to stay in the target location and receive an average episode reward of +30 over 100 consecutive
