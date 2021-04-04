@@ -192,11 +192,11 @@ With this architectural setup, the following parameters were determined through 
 | $\alpha$ | learning rate | 0.001 |
 | $\tau$ | target network soft-update rate | 0.001 |
 | $\gamma$ | discount factor on future returns | 0.99 |
-| $t\ update$ | number of steps to take before updating networks | 0.001 |
-| $num updates$ | number of updates to complete each time networks are updated during training | 0.001 |
-| $\mu$ | regression mean for Ornstein-Uhlenbeck noise | 0.001 |
-| $\theta$ | factor for weighing the delta of value from mean | 0.001 |
-| $\sigma$ | factor for weighting the Weiner (Gaussian) noise process | 0.001 |
+| $t\ update$ | number of steps to take before updating networks | 1 |
+| $num updates$ | number of updates to complete each time networks are updated during training | 2 |
+| $\mu$ | regression mean for Ornstein-Uhlenbeck noise | 0.0 |
+| $\theta$ | factor for weighing the delta of value from mean | 0.15 |
+| $\sigma$ | factor for weighting the Weiner (Gaussian) noise process | 0.2 |
 
 With these values, the following results were acquired:
 
